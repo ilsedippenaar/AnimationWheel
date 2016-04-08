@@ -40,7 +40,7 @@ public class TestFrame extends JFrame {
         // Draw all tris
         for(Triangle t:tris){
             imageBuffer.setColor(t.getColor());
-            imageBuffer.draw(t);
+            imageBuffer.fill(t);
         }
 
         // Draw the buffered frame

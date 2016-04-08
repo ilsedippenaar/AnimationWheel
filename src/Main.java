@@ -4,7 +4,7 @@ import java.awt.image.BufferedImage;
 
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         // Setup the frame
         TestFrame frame = new TestFrame();
         // Set size
@@ -19,6 +19,8 @@ public class Main {
         frame.setResizable(true);
         // [OFF] Always on top
         frame.setAlwaysOnTop(false);
+        // Set background color
+        frame.setBackground(Color.white);
         // Set visible
         frame.setVisible(true);
 
@@ -26,13 +28,17 @@ public class Main {
         Graphics2D image = buffer.createGraphics();
         frame.paint(image);
 
-        boolean persist = true;
+        // Random triangle for testing
+        Triangle test = new Triangle(Color.black, new Point(100,120), new Point(150,120), new Point(110,180));
+        frame.addTri(test);
 
+        boolean persist = true;
         while(persist){
             // Do stuff
 
             frame.paint(image);
             frame.repaint();
+            Thread.sleep(15);
         }
 
     }
