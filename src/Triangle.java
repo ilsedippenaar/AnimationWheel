@@ -4,12 +4,12 @@ import java.awt.*;
  *
  * Created by Tara on 4/6/2016.
  */
-public class Triangle extends Polygon{
+public class Triangle extends Polygon {
 
 
-    private Color color;
+    private int color;
 
-    public Triangle(Color c, Point one, Point two, Point three){
+    public Triangle(int c, Point one, Point two, Point three){
         color = c;
         addPoint(one);
         addPoint(two);
@@ -28,11 +28,11 @@ public class Triangle extends Polygon{
         addPoint(p.x, p.y);
     }
 
-    public Color getColor() {
+    public int getColor() {
         return color;
     }
 
-    public void setColor(Color color) {
+    public void setColor(int color) {
         this.color = color;
     }
 }

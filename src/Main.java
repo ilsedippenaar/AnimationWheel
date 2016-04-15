@@ -29,7 +29,7 @@ public class Main {
         frame.paint(image);
 
         // Random triangle for testing
-        Triangle test = new Triangle(Color.black, new Point(100,120), new Point(150,120), new Point(110,180));
+        Triangle test = new Triangle(Color.black.getRGB(), new Point(100,120), new Point(150,120), new Point(110,180));
         frame.addTri(test);
 
         boolean persist = true;
