@@ -1,3 +1,6 @@
+import base.*;
+import shapes.AbstractShape;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -11,6 +14,7 @@ import java.util.Collection;
 public class TestFrame extends JFrame {
 
     ArrayList<Triangle> tris=new ArrayList<>();
+    ArrayList<AbstractShape> shapes = new ArrayList<>();
 
     public TestFrame(){
         super();
@@ -19,6 +23,8 @@ public class TestFrame extends JFrame {
     public void addTri(Triangle t){
         tris.add(t);
     }
+
+    public void addShape(AbstractShape shape) {shapes.add(shape);}
 
     public void addTris(Collection<Triangle> ts){
         tris.addAll(ts);
@@ -41,6 +47,19 @@ public class TestFrame extends JFrame {
         for(Triangle t:tris){
             imageBuffer.setColor(new Color(t.getColor()));
             imageBuffer.fill(t);
+        }
+
+        for (AbstractShape s : shapes) {
+            for (base.Triangle t : s.mesh) {
+                float[][] QTranspose = {{1,0,0,0}, base.Math.normalize(new float[] {0,1,-0.5f,0})};
+                float[][] points = base.Math.matrixPointMult(QTranspose, t.points);
+                int[] xPoints = {(int) points[0][0], (int) points[0][1], (int) points[0][2]};
+                int[] yPoints = {(int) points[1][0], (int) points[1][1], (int) points[1][2]};
+                //int[] xPoints = {(int) points[0][0], (int) points[1][0], (int) points[2][0]};
+                //int[] yPoints = {(int) points[0][1], (int) points[1][1], (int) points[2][1]};
+                imageBuffer.setColor(new Color(t.color));
+                imageBuffer.fillPolygon(xPoints, yPoints, 3);
+            }
         }
 
         // Draw the buffered frame

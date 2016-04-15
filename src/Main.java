@@ -1,3 +1,5 @@
+import shapes.TestTriangleShape;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -31,6 +33,8 @@ public class Main {
         // Random triangle for testing
         Triangle test = new Triangle(Color.black.getRGB(), new Point(100,120), new Point(150,120), new Point(110,180));
         frame.addTri(test);
+
+        frame.addShape(new TestTriangleShape(new float[][] {{100,0,0,1},{0,100,0,1}, {100,100,100,1}}));
 
         boolean persist = true;
         while(persist){

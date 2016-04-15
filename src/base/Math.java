@@ -54,12 +54,52 @@ public class Math {
     public static float[] matrixVecMult(float[][] M, float[] v) {
         float[] b = new float[4];
         for (int i = 0; i < 4; i++) {
-            b[i] = 0;
+            float sum = 0;
             for (int j = 0; j < 4; j++) {
-                b[i] += M[i][j]*v[j];
+                sum += M[i][j]*v[j];
             }
+            b[i] = sum;
         }
         return b;
+    }
+
+    /**
+     * @param A A row-major matrix of floats
+     * @param B Another row-major matrix of floats
+     * @return A*B
+     */
+    public static float[][] matrixMult(float[][] A, float[][] B) {
+        float[][] C = new float[A.length][B[0].length];
+        for (int i = 0; i < A.length; i++) {
+            for (int j = 0; j < B[0].length; j++) {
+                float sum = 0;
+                for (int k = 0; k < B.length; k++) {
+                    sum += A[i][k]*B[k][j];
+                }
+                C[i][j] = sum;
+            }
+        }
+        return C;
+    }
+
+
+    /**
+     * @param A A <b>row-major</b> order matrix
+     * @param P A <b>column-major</b> order matrix (i.e., an array of points)
+     * @return A*P
+     */
+    public static float[][] matrixPointMult(float[][] A, float[][] P) {
+        float[][] C = new float[A.length][P.length];
+        for (int i = 0; i < A.length; i++) {
+            for (int j = 0; j < P.length; j++) {
+                float sum = 0;
+                for (int k = 0; k < A[0].length; k++) {
+                    sum += A[i][k]*P[j][k];
+                }
+                C[i][j] = sum;
+            }
+        }
+        return C;
     }
 
     public static float norm(float[] v) {
@@ -72,5 +112,15 @@ public class Math {
     public static float[] normalize(float[] v) {
         float n = norm(v);
         return new float[] {v[0]/n, v[1]/n, v[2]/n, 0};
+    }
+
+    public static float[][] transpose(float[][] A) {
+        float[][] B = new float[A[0].length][A.length];
+        for (int i = 0; i < A.length; i++) {
+            for (int j = 0; j < A[0].length; j++) {
+                B[j][i] = A[i][j];
+            }
+        }
+        return B;
     }
 }

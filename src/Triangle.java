@@ -4,7 +4,7 @@ import java.awt.*;
  *
  * Created by Tara on 4/6/2016.
  */
-public class Triangle extends Polygon {
+public class Triangle extends Polygon{
 
 
     private int color;
