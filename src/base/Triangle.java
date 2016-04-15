@@ -6,9 +6,9 @@ package base;
  * Smaller class for triangles
  */
 public class Triangle {
-    float[][] points;
-    int color;
-    float[] norm;
+    public float[][] points;
+    public int color;
+    public float[] norm;
 
     /**
      * @param points The points for the triangle in <b>counterclockwise</b> order

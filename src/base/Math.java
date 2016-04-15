@@ -54,10 +54,11 @@ public class Math {
     public static float[] matrixVecMult(float[][] M, float[] v) {
         float[] b = new float[4];
         for (int i = 0; i < 4; i++) {
-            b[i] = 0;
+            float sum = 0;
             for (int j = 0; j < 4; j++) {
-                b[i] += M[i][j]*v[j];
+                sum += M[i][j]*v[j];
             }
+            b[i] = sum;
         }
         return b;
     }
@@ -160,5 +161,15 @@ public class Math {
             out[i]=v[i]*m;
         }
         return out;
+    }
+
+    public static float[][] transpose(float[][] A) {
+        float[][] B = new float[A[0].length][A.length];
+        for (int i = 0; i < A.length; i++) {
+            for (int j = 0; j < A[0].length; j++) {
+                B[j][i] = A[i][j];
+            }
+        }
+        return B;
     }
 }
