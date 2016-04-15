@@ -110,6 +110,19 @@ public class Math {
     }
 
     /**
+     * @param A A row-major< order matrix
+     * @param P A column-major order matrix (i.e., an array of points)
+     * @return A*P
+     */
+    public static float[][] matrixPointMult(float[][] A, float[][] P) {
+        float[][] C = new float[A.length][P.length];
+        for (int i = 0; i < P.length; i++) {
+            C[i] = transformationMatrixVecMult(A,P[i]);
+        }
+        return C;
+    }
+
+    /**
      * Multiply two 4x4 transformation matricies
      * Optimizing for the fact that both matricies have {0,0,0,1} on the bottom
      * @param M 4x4 transformation matrix
