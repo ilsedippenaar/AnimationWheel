@@ -26,7 +26,7 @@ public class SimpleRenderer extends Renderer {
                 //      (so there isn't any roll)
                 {faceY, -1 * faceX, 0, 0},
                 // This sets the new Z axis to be the axis perpendicular to both of those
-                {faceX * faceZ, faceY * faceZ, -1 *Math.sqrt((faceX*faceX) + (faceY*faceY))},
+                {faceX * faceZ, faceY * faceZ, -1 *Math.hypot(faceX, faceY)},
                 {0,0,0,1}};
         // By this transformation, "up" for the camera is -Z and "right" is Y
 

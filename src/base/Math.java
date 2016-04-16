@@ -159,7 +159,7 @@ public class Math {
 
     public static float[] normalize(float[] v) {
         float n = magnitude(v);
-        return new float[] {v[0]/n, v[1]/n, v[2]/n};
+        return new float[] {v[0]/n, v[1]/n, v[2]/n, 1f};
     }
 
     /**
@@ -184,5 +184,15 @@ public class Math {
             }
         }
         return B;
+    }
+
+    /**
+     * <b>Assumes {@code u} is normalized</b>
+     * @param u The vector to be projected onto
+     * @param v The projected vector
+     * @return proj_u v
+     */
+    public static float[] project(float[] u, float[] v) {
+        return mult(u, dot(u, v));
     }
 }
