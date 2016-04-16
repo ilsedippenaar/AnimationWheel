@@ -30,22 +30,25 @@ public class Matrix {
     }
 
     /**
-     * @param angle The angle to rotate around in radians
+     * @param angle The angle to rotate around in degrees
      * @param axis Either {@link #xAxis Matrix.xAxis} or {@link #yAxis Matrix.yAxis}
      * @return A rotation matrix
      */
     public static float[][] makeRotationMatrix(float angle, int axis) {
+        angle = angle * (float) java.lang.Math.PI/180;
         switch (axis) {
             case xAxis:
                 return new float[][] {
-                        {1,0,0},
-                        {0, (float) java.lang.Math.cos(angle), (float) java.lang.Math.sin(angle)},
-                        {0, (float) -java.lang.Math.sin(angle), (float) java.lang.Math.cos(angle)}};
+                        {1,0,0,0},
+                        {0, (float) java.lang.Math.cos(angle), (float) java.lang.Math.sin(angle),0},
+                        {0, (float) -java.lang.Math.sin(angle), (float) java.lang.Math.cos(angle),0},
+                        {0,0,0,1}};
             case yAxis:
                 return new float[][] {
-                        {(float) java.lang.Math.cos(angle), 0, (float) -java.lang.Math.sin(angle)},
-                        {0,1,0},
-                        {(float) java.lang.Math.sin(angle), 0, (float) java.lang.Math.cos(angle)}
+                        {(float) java.lang.Math.cos(angle), 0, (float) -java.lang.Math.sin(angle),0},
+                        {0,1,0,0},
+                        {(float) java.lang.Math.sin(angle), 0, (float) java.lang.Math.cos(angle),0},
+                        {0,0,0,1}
                 };
             default:
                 return null;
@@ -68,6 +71,7 @@ public class Matrix {
 
 
     /**
+     * ** Still needs work this does**
      * @param eye The camera position
      * @param up The up vector (should be {0,1,0,0} for no camera roll)
      * @param at The direction the eye should look at
@@ -86,7 +90,54 @@ public class Matrix {
         };
     }
 
-    public class Builder {
+    public static class Builder {
+        private float[][] matrix = I;
+        private float[][] points;
 
+        public Builder() {
+        }
+
+        public Builder(float[][] points) {
+            this.points = points;
+        }
+
+        public float[][] build() {
+            if (points != null) {
+                return Math.matrixPointMult(matrix, points);
+            }
+            return matrix;
+        }
+
+        public Builder translate(float[] translate) {
+            matrix = Math.matrixMatrixMult(matrix,
+                    makeTranslationMatrix(translate[0], translate[1], translate[2]));
+            return this;
+        }
+
+        public Builder translate(float x, float y, float z) {
+            matrix = Math.matrixMatrixMult(matrix, makeTranslationMatrix(x, y, z));
+            return this;
+        }
+
+        public Builder rotate(float angle, int axis) {
+            matrix = Math.matrixMatrixMult(matrix, makeRotationMatrix(angle, axis));
+            return this;
+        }
+
+        public Builder scale(float[] scale) {
+            matrix = Math.matrixMatrixMult(matrix,
+                    makeTranslationMatrix(scale[0], scale[1], scale[2]));
+            return this;
+        }
+
+        public Builder scale(float x, float y, float z) {
+            matrix = Math.matrixMatrixMult(matrix, makeScaleMatrix(x, y, z));
+            return this;
+        }
+
+        public Builder project(float[] eye, float[] up, float[] at) {
+            matrix = Math.matrixMatrixMult(matrix, makeProjectionMatrix(eye, up, at, DEFAULT_DISTANCE));
+            return this;
+        }
     }
 }

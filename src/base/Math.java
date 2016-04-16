@@ -76,10 +76,11 @@ public class Math {
         // Skip the known elements in the matrix and vector
         // Since these parts can be accounted for without multiplication
         for (int i = 0; i < 3; i++) {
-            b[i] = 0;
+            float sum = 0;
             for (int j = 0; j < 3; j++) {
-                b[i] += M[i][j]*V[j];
+                sum += M[i][j]*V[j];
             }
+            b[i] = sum;
         }
         // Account for the 1 in V[3]
         b[0]+=M[0][3];
@@ -89,7 +90,7 @@ public class Math {
     }
 
     /**
-     * Multiplies two 4x4 matricies
+     * Multiplies two 4x4 matrices
      * @param M 4x4 Matrix
      * @param N 4x4 Matrix
      * @return M*N
@@ -99,10 +100,11 @@ public class Math {
 
         for(int i=0; i<4; i++) {
             for (int j = 0; j < 4; j++) {
-                out[i][j] = 0;
+                float sum = 0;
                 for (int k = 0; k < 4; k++) {
-                    k += M[i][k] * N[k][j];
+                    sum += M[i][k] * N[k][j];
                 }
+                out[i][j] = sum;
             }
         }
 
@@ -110,14 +112,15 @@ public class Math {
     }
 
     /**
-     * @param A A row-major< order matrix
-     * @param P A column-major order matrix (i.e., an array of points)
+     * @param A A row-major order matrix (4x4)
+     * @param P A column-major order matrix (i.e., an array of points) (4 x anything)
      * @return A*P
      */
     public static float[][] matrixPointMult(float[][] A, float[][] P) {
-        float[][] C = new float[A.length][P.length];
-        for (int i = 0; i < P.length; i++) {
-            C[i] = transformationMatrixVecMult(A,P[i]);
+        float[][] C = new float[P.length][4];
+        for (int i = 0; i < C.length; i++) {
+            //C[i] = transformationMatrixVecMult(A,P[i]);
+            C[i] = matrixVecMult(A, P[i]);
         }
         return C;
     }

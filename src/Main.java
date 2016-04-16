@@ -1,4 +1,6 @@
+import base.*;
 import shapes.TestTriangleShape;
+import shapes.Tetrahedron;
 
 import javax.swing.*;
 import java.awt.*;
@@ -32,17 +34,19 @@ public class Main {
 
         // Random triangle for testing
         Triangle test = new Triangle(Color.black.getRGB(), new Point(100,120), new Point(150,120), new Point(110,180));
-        frame.addTri(test);
+        //frame.addTri(test);
 
-        frame.addShape(new TestTriangleShape(new float[][] {{100,0,0,1},{0,100,0,1}, {100,100,100,1}}));
+        float[][] points = new float[][] {{100,0,0,1}, {0,100,0,1}, {100,100,100,1}}; // column-major order
+        frame.addShape(new TestTriangleShape(points));
+        //frame.addShape(new Tetrahedron());
 
         boolean persist = true;
         while(persist){
             // Do stuff
 
-            frame.paint(image);
+            //frame.paint(image);
             frame.repaint();
-            Thread.sleep(15);
+            Thread.sleep(1000);
         }
 
     }

@@ -1,8 +1,11 @@
 import base.*;
+import base.Math;
 import shapes.AbstractShape;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,13 +14,22 @@ import java.util.Collection;
  *
  * Created by Tara on 4/6/2016.
  */
-public class TestFrame extends JFrame {
+public class TestFrame extends JFrame implements KeyListener {
 
     ArrayList<Triangle> tris=new ArrayList<>();
     ArrayList<AbstractShape> shapes = new ArrayList<>();
+    float[][] Q ={
+            {1,0,0,0},
+            {0,1,0,0},
+            {0,0,0,0},
+            {0,0,0,0}
+    };
+    private float x = 0;
+    private float y = 0;
 
     public TestFrame(){
         super();
+        addKeyListener(this);
     }
 
     public void addTri(Triangle t){
@@ -51,12 +63,13 @@ public class TestFrame extends JFrame {
 
         for (AbstractShape s : shapes) {
             for (base.Triangle t : s.mesh) {
-                float[][] QTranspose = {{1,0,0,0}, base.Math.normalize(new float[] {0,1,-0.5f,0})};
-                float[][] points = base.Math.matrixPointMult(QTranspose, t.points);
+                // transform the points
+                float[][] points = new Matrix.Builder(t.points).translate(x, y, 0).build();
+                System.out.println(points[0][0]);
+                // project
+                points = base.Math.matrixPointMult(Math.transpose(Q), points);
                 int[] xPoints = {(int) points[0][0], (int) points[0][1], (int) points[0][2]};
                 int[] yPoints = {(int) points[1][0], (int) points[1][1], (int) points[1][2]};
-                //int[] xPoints = {(int) points[0][0], (int) points[1][0], (int) points[2][0]};
-                //int[] yPoints = {(int) points[0][1], (int) points[1][1], (int) points[2][1]};
                 imageBuffer.setColor(new Color(t.color));
                 imageBuffer.fillPolygon(xPoints, yPoints, 3);
             }
@@ -66,6 +79,30 @@ public class TestFrame extends JFrame {
         Graphics2D g2D = (Graphics2D) g;
         g2D.drawImage(buffer, null, 0,0);
 
+
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        switch (e.getExtendedKeyCode()) {
+            case KeyEvent.VK_W: // forward
+                //Q = new Matrix.Builder(Q).rotate(20, Matrix.xAxis).build();
+                x += 50;
+                break;
+            case KeyEvent.VK_S: //backward
+                x -= 50;
+                //Q = new Matrix.Builder(Q).rotate(-20, Matrix.xAxis).build();
+                break;
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
 
     }
 }

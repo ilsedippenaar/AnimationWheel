@@ -6,12 +6,12 @@ package base;
  * Smaller class for triangles
  */
 public class Triangle {
-    public float[][] points;
+    public float[][] points; // in column-major order
     public int color;
     public float[] norm;
 
     /**
-     * @param points The points for the triangle in <b>counterclockwise</b> order
+     * @param points The points for the triangle in <b>counterclockwise</b> order and column-major
      * */
     public Triangle(float[][] points, int color) {
         this.points = points;
