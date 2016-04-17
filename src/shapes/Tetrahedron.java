@@ -20,7 +20,6 @@ public class Tetrahedron extends AbstractShape {
                 {0, 1, 1/ (float) Math.sqrt(2),1},
                 {0, -1, 1/ (float) Math.sqrt(2),1}
         };
-        p = base.Math.transpose(p);
         // TODO: check for correct order of points for calculating normals
         mesh.add(new Triangle(new float[][]{p[0], p[1], p[2]}, color));
         mesh.add(new Triangle(new float[][]{p[0], p[1], p[3]}, color));

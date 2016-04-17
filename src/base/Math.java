@@ -155,9 +155,7 @@ public class Math {
 
 
     public static float magnitude(float[] v) {
-        return (float) java.lang.Math.sqrt(
-                java.lang.Math.pow(v[0], 2) +
-                java.lang.Math.pow(v[1], 2));
+        return (float) java.lang.Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
     }
 
     public static float[] normalize(float[] v) {

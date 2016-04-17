@@ -3,6 +3,7 @@ package base;
 import com.sun.istack.internal.Nullable;
 
 import java.lang.*;
+import java.util.Arrays;
 
 /**
  * Created by Jaco on 4/16/16.
@@ -10,11 +11,13 @@ import java.lang.*;
  * Class for building transformation matrices
  */
 public class Matrix {
-    public static final float[][] I = {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
     public static final int xAxis = 0;
     public static final int yAxis = 1;
     public static final float DEFAULT_DISTANCE = 100;
 
+    public static float[][] identity() {
+        return new float[][] {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
+    }
     /**
      * @param transX Translation in the x direction
      * @param transY Translation in the y direction
@@ -22,7 +25,7 @@ public class Matrix {
      * @return A translation matrix
      */
     public static float[][] makeTranslationMatrix(float transX, float transY, float transZ) {
-        float[][] matrix = I;
+        float[][] matrix = identity();
         matrix[0][3] = transX;
         matrix[1][3] = transY;
         matrix[2][3] = transZ;
@@ -62,7 +65,7 @@ public class Matrix {
      * @return A scale matrix
      */
     public static float[][] makeScaleMatrix(float scaleX, float scaleY, float scaleZ) {
-        float[][] matrix = I;
+        float[][] matrix = identity();
         matrix[0][0] = scaleX;
         matrix[1][1] = scaleY;
         matrix[2][2] = scaleZ;
@@ -91,17 +94,24 @@ public class Matrix {
     }
 
     public static class Builder {
-        private float[][] matrix = I;
+        private float[][] translation = identity(),
+                rotation = identity(),
+                scaleMat = identity(),
+                projection = identity();
         private float[][] points;
 
-        public Builder() {
-        }
+        public Builder() {}
 
         public Builder(float[][] points) {
             this.points = points;
         }
 
         public float[][] build() {
+            // TODO: make more efficient
+            // order: Projection * Translation * Rotation * Scale
+            float[][] matrix = Math.matrixMatrixMult(rotation, scaleMat);
+            matrix = Math.matrixMatrixMult(translation, matrix);
+            matrix = Math.matrixMatrixMult(projection, matrix);
             if (points != null) {
                 return Math.matrixPointMult(matrix, points);
             }
@@ -109,34 +119,40 @@ public class Matrix {
         }
 
         public Builder translate(float[] translate) {
-            matrix = Math.matrixMatrixMult(matrix,
-                    makeTranslationMatrix(translate[0], translate[1], translate[2]));
+            translation = makeTranslationMatrix(translate[0], translate[1], translate[2]);
             return this;
         }
 
         public Builder translate(float x, float y, float z) {
-            matrix = Math.matrixMatrixMult(matrix, makeTranslationMatrix(x, y, z));
+            translation = makeTranslationMatrix(x, y, z);
             return this;
         }
 
         public Builder rotate(float angle, int axis) {
-            matrix = Math.matrixMatrixMult(matrix, makeRotationMatrix(angle, axis));
+            rotation = makeRotationMatrix(angle, axis);
             return this;
         }
 
         public Builder scale(float[] scale) {
-            matrix = Math.matrixMatrixMult(matrix,
-                    makeTranslationMatrix(scale[0], scale[1], scale[2]));
+            scaleMat = makeScaleMatrix(scale[0], scale[1], scale[2]);
             return this;
         }
 
         public Builder scale(float x, float y, float z) {
-            matrix = Math.matrixMatrixMult(matrix, makeScaleMatrix(x, y, z));
+            scaleMat = makeScaleMatrix(x, y, z);
             return this;
         }
 
-        public Builder project(float[] eye, float[] up, float[] at) {
-            matrix = Math.matrixMatrixMult(matrix, makeProjectionMatrix(eye, up, at, DEFAULT_DISTANCE));
+        public Builder scale(float scale) {
+            scaleMat = makeScaleMatrix(scale, scale, scale);
+            return this;
+        }
+
+        /**
+         * Uses default values for up (0,1,0) and distance (100)
+         */
+        public Builder project(float[] eye, float[] at) {
+            projection = makeProjectionMatrix(eye, new float[] {0,1,0}, at, DEFAULT_DISTANCE);
             return this;
         }
     }

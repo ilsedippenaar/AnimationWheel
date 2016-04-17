@@ -13,8 +13,11 @@ public class Main {
         TestFrame frame = new TestFrame();
         // Set size
         frame.setSize(800,600);
-        // Set position (to the middle of a 1080p screen)
-        frame.setLocation(960-frame.getWidth()/2,540-frame.getHeight()/2);
+        // Set position to middle of screen
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int width = (int) screenSize.getWidth();
+        int height = (int) screenSize.getHeight();
+        frame.setLocation(width/2-frame.getWidth()/2,height/2-frame.getHeight()/2);
         // Exit on close
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         // [OFF] Remove borders
@@ -33,20 +36,26 @@ public class Main {
         frame.paint(image);
 
         // Random triangle for testing
-        Triangle test = new Triangle(Color.black.getRGB(), new Point(100,120), new Point(150,120), new Point(110,180));
+        Triangle test = new Triangle(Color.black.getRGB(), new Point(400,0), new Point(100,590), new Point(700,590));
         //frame.addTri(test);
 
-        float[][] points = new float[][] {{100,0,0,1}, {0,100,0,1}, {100,100,100,1}}; // column-major order
-        frame.addShape(new TestTriangleShape(points));
-        //frame.addShape(new Tetrahedron());
+        float[][] points = new float[][] {{0,100,-100,1}, {-100,-50,-100,1}, {100,-50,-100,1}}; // column-major order
+        //frame.addShape(new TestTriangleShape(points));
+
+        points = new float[][] {{0,200,-1000,1}, {-100,50,-1000,1}, {100,50,-1000,1}};
+        //frame.addShape(new TestTriangleShape(points));
+        Tetrahedron t = new Tetrahedron();
+        t.setTransform(new Matrix.Builder().rotate(15, Matrix.yAxis).scale(50).build());
+        frame.addShape(t);
 
         boolean persist = true;
         while(persist){
             // Do stuff
 
             //frame.paint(image);
+            // TODO: clear so animation is possible
             frame.repaint();
-            Thread.sleep(1000);
+            Thread.sleep(1000); // fewer frames works better for some reason???
         }
 
     }

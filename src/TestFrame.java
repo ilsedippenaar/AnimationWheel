@@ -26,6 +26,7 @@ public class TestFrame extends JFrame implements KeyListener {
     };
     private float x = 0;
     private float y = 0;
+    private float angle = 0;
 
     public TestFrame(){
         super();
@@ -63,15 +64,18 @@ public class TestFrame extends JFrame implements KeyListener {
 
         for (AbstractShape s : shapes) {
             for (base.Triangle t : s.mesh) {
-                // transform the points
-                float[][] points = new Matrix.Builder(t.points).translate(x, y, 0).build();
-                System.out.println(points[0][0]);
-                // project
-                points = base.Math.matrixPointMult(Math.transpose(Q), points);
-                int[] xPoints = {(int) points[0][0], (int) points[0][1], (int) points[0][2]};
-                int[] yPoints = {(int) points[1][0], (int) points[1][1], (int) points[1][2]};
+                // TODO: optimize all the things
+                // transform the points with world matrix
+                float[][] points = new Matrix.Builder(Math.matrixPointMult(s.transform, t.points))
+                        .translate(x, y, 0)
+                        .project(new float[]{0, 0, 100}, new float[]{0, 0, -1})
+                        .rotate(angle, Matrix.yAxis)
+                        .build();
+                // project the points onto view frame
+                //points = base.Math.matrixPointMult(base.Math.transpose(Q), points);
+                int[][] coords = coordinatesToJFrame(points);
                 imageBuffer.setColor(new Color(t.color));
-                imageBuffer.fillPolygon(xPoints, yPoints, 3);
+                imageBuffer.fillPolygon(coords[0], coords[1], 3);
             }
         }
 
@@ -92,11 +96,20 @@ public class TestFrame extends JFrame implements KeyListener {
         switch (e.getExtendedKeyCode()) {
             case KeyEvent.VK_W: // forward
                 //Q = new Matrix.Builder(Q).rotate(20, Matrix.xAxis).build();
-                x += 50;
+                y += 50;
                 break;
             case KeyEvent.VK_S: //backward
-                x -= 50;
+                y -= 50;
                 //Q = new Matrix.Builder(Q).rotate(-20, Matrix.xAxis).build();
+                break;
+            case KeyEvent.VK_D:
+                x += 50;
+                break;
+            case KeyEvent.VK_A:
+                x -= 50;
+                break;
+            case KeyEvent.VK_R:
+                angle += 20;
                 break;
         }
     }
@@ -104,5 +117,21 @@ public class TestFrame extends JFrame implements KeyListener {
     @Override
     public void keyReleased(KeyEvent e) {
 
+    }
+
+
+    /**
+     * @param points Points of a triangle ready to be painted
+     * @return A matrix with two rows, one for x values, the other for y values
+     */
+    private int[][] coordinatesToJFrame(float [][] points) {
+        int midHeight = getHeight()/2;
+        int midWidth = getWidth()/2;
+        int[][] newPoints = new int[2][points.length];
+        for (int i = 0; i < points.length; i++) {
+            newPoints[0][i] = (int) points[i][0] + midWidth; // move and set x
+            newPoints[1][i] = midHeight - (int) points[i][1]; // move and set y
+        }
+        return newPoints;
     }
 }
