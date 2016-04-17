@@ -16,7 +16,6 @@ import java.util.Collection;
  */
 public class TestFrame extends JFrame implements KeyListener {
 
-    ArrayList<Triangle> tris=new ArrayList<>();
     ArrayList<AbstractShape> shapes = new ArrayList<>();
     float[][] Q ={
             {1,0,0,0},
@@ -26,6 +25,16 @@ public class TestFrame extends JFrame implements KeyListener {
     };
     private float x = 0;
     private float y = 0;
+
+    public void setCameraPos(float[] newPos) {
+        cameraPos = newPos;
+    }
+
+    public float[] getCameraPos() {
+        return cameraPos;
+    }
+
+    private float[] cameraPos = {0,0,1};
 
     /**
      * Adds to the angle
@@ -42,19 +51,8 @@ public class TestFrame extends JFrame implements KeyListener {
         addKeyListener(this);
     }
 
-    public void addTri(Triangle t){
-        tris.add(t);
-    }
 
     public void addShape(AbstractShape shape) {shapes.add(shape);}
-
-    public void addTris(Collection<Triangle> ts){
-        tris.addAll(ts);
-    }
-
-    public void setTris(ArrayList<Triangle> newTris){
-        tris=newTris;
-    }
 
     @Override
     public void paint(Graphics g){
@@ -69,13 +67,7 @@ public class TestFrame extends JFrame implements KeyListener {
         imageBuffer.setColor(Color.white);
         imageBuffer.fillRect(0,0,getWidth(),getHeight());
 
-        // Draw all tris
-        for(Triangle t:tris){
-            imageBuffer.setColor(new Color(t.getColor()));
-            imageBuffer.fill(t);
-        }
-
-        float[] facing={}; // TODO set to be a vector of the camera facing
+        float[] facing=base.Math.normalize(base.Math.mult(cameraPos,-1));
 
         for (AbstractShape s : shapes) {
             for (base.Triangle t : s.mesh) {
@@ -83,7 +75,7 @@ public class TestFrame extends JFrame implements KeyListener {
                 // transform the points with world matrix
                 float[][] points = new Matrix.Builder(Math.matrixPointMult(s.transform, t.points))
                         .translate(x, y, 0)
-                        .project(new float[]{0, 0, 100}, new float[]{0, 0, -1})
+                        .project(cameraPos, Math.normalize(Math.mult(cameraPos,-1)))
                         .rotate(angle, Matrix.yAxis)
                         .build();
                 // project the points onto view frame

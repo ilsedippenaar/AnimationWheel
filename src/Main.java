@@ -34,30 +34,51 @@ public class Main {
         Graphics2D image = buffer.createGraphics();
         frame.paint(image);
 
-        // Random triangle for testing
-        Triangle test = new Triangle(Color.black.getRGB(), new Point(400,0), new Point(100,590), new Point(700,590));
-        //frame.addTri(test);
-
+        /* Old test triangles
         float[][] points = new float[][] {{0,100,-100,1}, {-100,-50,-100,1}, {100,-50,-100,1}}; // column-major order
         //frame.addShape(new TestTriangleShape(points));
 
         points = new float[][] {{0,200,-1000,1}, {-100,50,-1000,1}, {100,50,-1000,1}};
         //frame.addShape(new TestTriangleShape(points));
+        //*/
+
         Tetrahedron t = new Tetrahedron();
         t.setTransform(new Matrix.Builder().rotate(15, Matrix.yAxis).scale(50).build());
         frame.addShape(t);
 
+        frame.setCameraPos(new float[]{0,0,30});
+
         boolean persist = true;
+        boolean up=true;
+
+        float cameraBob = 1.5F; // Camera y change per frame
+        float cameraMax = 15; // Camera y bounds (-max to max)
         while(persist){
             // Do stuff
 
             //frame.paint(image);
-            // TODO: clear so animation is possible
-            frame.repaint();
-            Thread.sleep(100); // fewer frames works better for some reason???
-            frame.modifyAngle(10F); // Rotate over time
-        }
 
+            frame.repaint();
+            Thread.sleep(40); // fewer frames works better for some reason???
+
+            // All this animation should probably go into a method in the frame itself
+            // Some sort of step() method maybe?
+
+            frame.modifyAngle(1.5F); // Rotate over time
+            if(up){
+                float[] newCam=frame.getCameraPos();
+                newCam[1]+=cameraBob;
+                if(newCam[1]>cameraMax)
+                    up=false;
+            } else {
+                float[] newCam=frame.getCameraPos();
+                newCam[1]-=cameraBob;
+                if(newCam[1]<-cameraMax)
+                    up=true;
+            }
+
+
+        }
     }
 
 }
