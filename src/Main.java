@@ -1,5 +1,4 @@
 import base.*;
-import shapes.TestTriangleShape;
 import shapes.Tetrahedron;
 
 import javax.swing.*;
@@ -55,7 +54,8 @@ public class Main {
             //frame.paint(image);
             // TODO: clear so animation is possible
             frame.repaint();
-            Thread.sleep(1000); // fewer frames works better for some reason???
+            Thread.sleep(100); // fewer frames works better for some reason???
+            frame.modifyAngle(10F); // Rotate over time
         }
 
     }

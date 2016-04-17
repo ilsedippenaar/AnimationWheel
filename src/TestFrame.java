@@ -26,6 +26,15 @@ public class TestFrame extends JFrame implements KeyListener {
     };
     private float x = 0;
     private float y = 0;
+
+    /**
+     * Adds to the angle
+     * @param delta Amount to add to angle
+     */
+    public void modifyAngle(float delta) {
+        angle += delta;
+    }
+
     private float angle = 0;
 
     public TestFrame(){
@@ -56,11 +65,17 @@ public class TestFrame extends JFrame implements KeyListener {
         BufferedImage buffer = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D imageBuffer = buffer.createGraphics();
 
+        // Fill background on imagebuffer, so it will cover the previous frame
+        imageBuffer.setColor(Color.white);
+        imageBuffer.fillRect(0,0,getWidth(),getHeight());
+
         // Draw all tris
         for(Triangle t:tris){
             imageBuffer.setColor(new Color(t.getColor()));
             imageBuffer.fill(t);
         }
+
+        float[] facing={}; // TODO set to be a vector of the camera facing
 
         for (AbstractShape s : shapes) {
             for (base.Triangle t : s.mesh) {
@@ -72,10 +87,17 @@ public class TestFrame extends JFrame implements KeyListener {
                         .rotate(angle, Matrix.yAxis)
                         .build();
                 // project the points onto view frame
-                //points = base.Math.matrixPointMult(base.Math.transpose(Q), points);
-                int[][] coords = coordinatesToJFrame(points);
-                imageBuffer.setColor(new Color(t.color));
-                imageBuffer.fillPolygon(coords[0], coords[1], 3);
+
+                // Cull tris facing away (which solves depth-checking for simple shapes)
+                float[] edge1=base.Math.subtract(points[0], points[1]);
+                float[] edge2=base.Math.subtract(points[0], points[2]);
+                float[] norm = base.Math.cross(edge1, edge2);
+
+                if(base.Math.dot(norm, facing)<0) {
+                    int[][] coords = coordinatesToJFrame(points);
+                    imageBuffer.setColor(new Color(t.color));
+                    imageBuffer.fillPolygon(coords[0], coords[1], 3);
+                }
             }
         }
 
