@@ -16,7 +16,6 @@ import java.util.Collection;
  */
 public class TestFrame extends JFrame implements KeyListener {
 
-    ArrayList<Triangle> tris=new ArrayList<>();
     ArrayList<AbstractShape> shapes = new ArrayList<>();
     float[][] Q ={
             {1,0,0,0},
@@ -26,6 +25,25 @@ public class TestFrame extends JFrame implements KeyListener {
     };
     private float x = 0;
     private float y = 0;
+
+    public void setCameraPos(float[] newPos) {
+        cameraPos = newPos;
+    }
+
+    public float[] getCameraPos() {
+        return cameraPos;
+    }
+
+    private float[] cameraPos = {0,0,1};
+
+    /**
+     * Adds to the angle
+     * @param delta Amount to add to angle
+     */
+    public void modifyAngle(float delta) {
+        angle += delta;
+    }
+
     private float angle = 0;
 
     public TestFrame(){
@@ -33,19 +51,8 @@ public class TestFrame extends JFrame implements KeyListener {
         addKeyListener(this);
     }
 
-    public void addTri(Triangle t){
-        tris.add(t);
-    }
 
     public void addShape(AbstractShape shape) {shapes.add(shape);}
-
-    public void addTris(Collection<Triangle> ts){
-        tris.addAll(ts);
-    }
-
-    public void setTris(ArrayList<Triangle> newTris){
-        tris=newTris;
-    }
 
     @Override
     public void paint(Graphics g){
@@ -56,11 +63,11 @@ public class TestFrame extends JFrame implements KeyListener {
         BufferedImage buffer = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D imageBuffer = buffer.createGraphics();
 
-        // Draw all tris
-        for(Triangle t:tris){
-            imageBuffer.setColor(new Color(t.getColor()));
-            imageBuffer.fill(t);
-        }
+        // Fill background on imagebuffer, so it will cover the previous frame
+        imageBuffer.setColor(Color.white);
+        imageBuffer.fillRect(0,0,getWidth(),getHeight());
+
+        float[] facing=base.Math.normalize(base.Math.mult(cameraPos,-1));
 
         for (AbstractShape s : shapes) {
             for (base.Triangle t : s.mesh) {
@@ -68,14 +75,21 @@ public class TestFrame extends JFrame implements KeyListener {
                 // transform the points with world matrix
                 float[][] points = new Matrix.Builder(Math.matrixPointMult(s.transform, t.points))
                         .translate(x, y, 0)
-                        .project(new float[]{0, 0, 100}, new float[]{0, 0, -1})
+                        .project(cameraPos, Math.normalize(Math.mult(cameraPos,-1)))
                         .rotate(angle, Matrix.yAxis)
                         .build();
                 // project the points onto view frame
-                //points = base.Math.matrixPointMult(base.Math.transpose(Q), points);
-                int[][] coords = coordinatesToJFrame(points);
-                imageBuffer.setColor(new Color(t.color));
-                imageBuffer.fillPolygon(coords[0], coords[1], 3);
+
+                // Cull tris facing away (which solves depth-checking for simple shapes)
+                float[] edge1=base.Math.subtract(points[0], points[1]);
+                float[] edge2=base.Math.subtract(points[0], points[2]);
+                float[] norm = base.Math.cross(edge1, edge2);
+
+                if(base.Math.dot(norm, facing)<0) {
+                    int[][] coords = coordinatesToJFrame(points);
+                    imageBuffer.setColor(new Color(t.color));
+                    imageBuffer.fillPolygon(coords[0], coords[1], 3);
+                }
             }
         }
 
