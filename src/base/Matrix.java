@@ -1,10 +1,5 @@
 package base;
 
-import com.sun.istack.internal.Nullable;
-
-import java.lang.*;
-import java.util.Arrays;
-
 /**
  * Created by Jaco on 4/16/16.
  *
@@ -81,8 +76,9 @@ public class Matrix {
      * @param distance The distance from the camera to the viewport (should be {@link #DEFAULT_DISTANCE})
      * @return A projection matrix
      */
-    public static float[][] makeProjectionMatrix(float[] eye, float[] up, float[] at, float distance) {
-        float[] n = Math.normalize(at);
+    @Deprecated
+    public static float[][] makeProjectionMatrixOld(float[] eye, float[] up, float[] at, float distance) {
+        float[] n = Math.normalize(Math.subtract(at, eye));
         float[] y = Math.normalize(Math.subtract(up, Math.project(n, up)));
         float[] x = Math.normalize(Math.cross(n, y));
         return new float[][] {
@@ -91,6 +87,25 @@ public class Matrix {
                 {0,0,0,0},
                 {n[0]/distance, n[1]/distance, n[2]/distance, -Math.dot(n, eye)/distance}
         };
+    }
+
+    /**
+     * Maps points in the view frustum to normalized device coordinates so  that
+     * x, y, and z are in the range (-1, 1). Based mostly on
+     * <a href="http://www.ogldev.org/www/tutorial12/tutorial12.html"/>this site</a>.
+     *
+     * @param aspectRatio The aspect ratio of the screen (x/y)
+     * @param fov The field of view in degrees (0 to 90)
+     * @param near The distance to the near clipping plane
+     * @param far The distance to the far clipping plane
+     * @return A perspective projection matrix
+     */
+    // TODO: move to Camera class?
+    public static float[][] makeProjectionMatrix(float aspectRatio, float fov, float near, float far) {
+        return new float[][] {{1/(float) (aspectRatio*java.lang.Math.tan(fov)),0,0,0},
+                {0,1/(float) java.lang.Math.tan(fov), 0,0},
+                {0,0,(-near-far)/(near-far),2*near*far/(near-far)},
+                {0,0,-1,0}};
     }
 
     public static class Builder {
@@ -152,7 +167,7 @@ public class Matrix {
          * Uses default values for up (0,1,0) and distance (100)
          */
         public Builder project(float[] eye, float[] at) {
-            projection = makeProjectionMatrix(eye, new float[] {0,1,0}, at, DEFAULT_DISTANCE);
+            projection = makeProjectionMatrixOld(eye, new float[]{0, 1, 0}, at, DEFAULT_DISTANCE);
             return this;
         }
     }
