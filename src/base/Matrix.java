@@ -18,7 +18,7 @@ public class Matrix {
      * @param transX Translation in the x direction
      * @param transY Translation in the y direction
      * @param transZ Translation in the z direction
-     * @return A translation transformMatrix
+     * @return A translation worldView
      */
     public static float[][] makeTranslationMatrix(float transX, float transY, float transZ) {
         float[][] matrix = identity();
@@ -31,7 +31,7 @@ public class Matrix {
     /**
      * @param angle The angle to rotate around in degrees
      * @param axis Either {@link #xAxis Matrix.xAxis} or {@link #yAxis Matrix.yAxis}
-     * @return A rotation transformMatrix
+     * @return A rotation worldView
      */
     public static float[][] makeRotationMatrix(float angle, int axis) {
         angle = angle < -90 ? -90 : angle > 90 ? 90 : angle;
@@ -66,7 +66,7 @@ public class Matrix {
      * @param scaleX Multiple for x direction (1 for no effect)
      * @param scaleY Multiple for y direction (1 for no effect)
      * @param scaleZ Multiple for z direction (1 for no effect)
-     * @return A scale transformMatrix
+     * @return A scale worldView
      */
     public static float[][] makeScaleMatrix(float scaleX, float scaleY, float scaleZ) {
         float[][] matrix = identity();
@@ -74,28 +74,6 @@ public class Matrix {
         matrix[1][1] = scaleY;
         matrix[2][2] = scaleZ;
         return matrix;
-    }
-
-
-    /**
-     * ** Still needs work this does**
-     * @param eye The camera position
-     * @param up The up vector (should be {0,1,0,0} for no camera roll)
-     * @param at The direction the eye should look at
-     * @param distance The distance from the camera to the viewport (should be {@link #DEFAULT_DISTANCE})
-     * @return A projection transformMatrix
-     */
-    @Deprecated
-    public static float[][] makeProjectionMatrixOld(float[] eye, float[] up, float[] at, float distance) {
-        float[] n = Mat.normalize(Mat.subtract(at, eye));
-        float[] y = Mat.normalize(Mat.subtract(up, Mat.project(n, up)));
-        float[] x = Mat.normalize(Mat.cross(n, y));
-        return new float[][] {
-                {x[0],x[1],x[2], -Mat.dot(x, eye)},
-                {y[0],y[1],y[2], -Mat.dot(y, eye)},
-                {n[0]/distance, n[1]/distance, n[2]/distance, -Mat.dot(n, eye)/distance},
-                {0,0,0,0}
-        };
     }
 
     public static class Builder {
@@ -172,14 +150,6 @@ public class Matrix {
 
         public Builder setPoints(float[][] points) {
             this.points = points;
-            return this;
-        }
-
-        /**
-         * Uses default values for up (0,1,0) and distance (100)
-         */
-        public Builder project(float[] eye, float[] at) {
-            projection = makeProjectionMatrixOld(eye, new float[]{0, 1, 0}, at, DEFAULT_DISTANCE);
             return this;
         }
     }

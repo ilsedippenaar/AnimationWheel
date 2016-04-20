@@ -44,9 +44,9 @@ public class Frame extends JFrame implements KeyListener {
         angle = (angle + delta)%360;
         //TODO: remove this temp code
         shapes.get(0).setTransform(
-                builder.scale(50)
-                .translate(0,0,-30)
-                .rotateZ(angle)
+                builder.scale(20)
+                .translate(0,0,-100)
+                .rotateY(angle)
                 .build()
         );
         System.out.println(angle);
@@ -75,7 +75,7 @@ public class Frame extends JFrame implements KeyListener {
 
         for (AbstractShape s : shapes) {
             for (base.Triangle t : s.mesh) {
-                // transform the points with world transformMatrix
+                // transform the points with world worldView
                 /*float[][] points = builder.setPoints(Mat.matrixPointMult(s.transform, t.points))
                         .translate(x, y, 0)
                         .project(cameraPos, Mat.normalize(Mat.mult(cameraPos, -1)))
@@ -139,16 +139,16 @@ public class Frame extends JFrame implements KeyListener {
 
 
     /**
-     * @param points Points of a triangle ready to be painted
-     * @return A transformMatrix with two rows, one for x values, the other for y values
+     * @param points Points of a triangle in [-1,1] ready to be painted
+     * @return A worldView with two rows, one for x values, the other for y values
      */
     private int[][] coordinatesToJFrame(float [][] points) {
         int midHeight = getHeight()/2;
         int midWidth = getWidth()/2;
         int[][] newPoints = new int[2][points.length];
         for (int i = 0; i < points.length; i++) {
-            newPoints[0][i] = (int) points[i][0] + midWidth; // move and set x
-            newPoints[1][i] = midHeight - (int) points[i][1]; // move and set y
+            newPoints[0][i] = (int) (points[i][0]*getWidth()) + midWidth; // move and set x
+            newPoints[1][i] = midHeight - (int) (points[i][1]*getHeight()); // move and set y
         }
         return newPoints;
     }

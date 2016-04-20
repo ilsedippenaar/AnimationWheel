@@ -44,8 +44,7 @@ public class Main {
 
         Tetrahedron t = new Tetrahedron();
         t.setTransform(new Matrix.Builder()
-                .rotateY(15)
-                .scale(50)
+                .scale(20)
                 .translate(0, 0, -100)
                 .build());
         frame.addShape(t);
@@ -68,7 +67,7 @@ public class Main {
             // All this animation should probably go into a method in the frame itself
             // Some sort of step() method maybe?
 
-            frame.modifyAngle(30f); // Rotate over time
+            frame.modifyAngle(15f); // Rotate over time
             /*if(up){
                 float[] newCam=frame.getCameraPos();
                 newCam[1]+=cameraBob;

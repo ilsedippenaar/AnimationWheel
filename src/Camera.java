@@ -1,15 +1,29 @@
 import base.*;
 import base.Mat;
 
+/**
+ * 1. Translate so that camera is at origin
+ * 2. Transform to world view
+ * 3. Cull
+ * 4. Transform to NDC
+ * 5. Clip
+ * 6. Project
+ */
+
 public class Camera {
-    public float aspectRatio = 1; // x/y
-    public float FOV = 45; // from 0 to 90
-    public float zNear = 10, zFar = 1000;
-    public float rotationX = 0, rotationY = 0;
-    public float[] pos = {0,0,0};
-    public float[][] transformMatrix = Matrix.identity();
-    public float[][] projectMatrix = makeProjectionMatrix();
-    private boolean isTransformDirty = true;
+    // for perspective projection
+    private float aspectRatio = 1; // x/y
+    private float FOV = 45; // from 0 to 90
+    private float zNear = 10, zFar = 1000;
+    private float[][] projectMatrix = makeProjectionMatrix();
+
+
+    // for world view transformation
+    private float[] pos = {0,0,0,1};
+    private float[] at = {0,0,-1,0};
+    private float[] up = {0,1,0,0};
+    private float[][] worldView = makeWorldViewMatrix();
+    private boolean isWorldViewDirty = true;
 
     public void setAspectRatio(float aspectRatio) {
         this.aspectRatio = aspectRatio;
@@ -32,68 +46,85 @@ public class Camera {
     }
 
     public void setRotationX(float rotationX) {
-        this.rotationX = rotationX;
-        isTransformDirty = true;
+        at = Mat.matrixVecMult(
+                Matrix.makeRotationMatrix(rotationX, Matrix.xAxis),
+                new float[] {0,0,-1,0});
+        isWorldViewDirty = true;
     }
 
     public void setRotationY(float rotationY) {
-        this.rotationY = rotationY;
-        isTransformDirty = true;
+        at = Mat.matrixVecMult(
+                Matrix.makeRotationMatrix(rotationY, Matrix.yAxis),
+                new float[] {0,0,-1,0});
+        isWorldViewDirty = true;
     }
 
     public void rotateXBy(float dx) {
-        rotationX += dx;
-        isTransformDirty = true;
+        at = Mat.matrixVecMult(
+                Matrix.makeRotationMatrix(dx, Matrix.xAxis),
+                at);
+        isWorldViewDirty = true;
     }
 
     public void rotateYBy(float dy) {
-        rotationX += dy;
-        isTransformDirty = true;
+        at = Mat.matrixVecMult(
+                Matrix.makeRotationMatrix(dy, Matrix.yAxis),
+                at);
+        isWorldViewDirty = true;
     }
 
     public void setPos(float[] pos) {
         this.pos = pos;
-        isTransformDirty = true;
+        isWorldViewDirty = true;
     }
 
-    public float[][] look(float[][] points) {
-        if (isTransformDirty) {
-            makeTransformationMatrix();
-            isTransformDirty = false;
-        }
-        float[][] transformPoints = Mat.matrixPointMult(transformMatrix, points);
-        // send points to renderer for mapping to NDC, culling, and clipping
-        return Mat.matrixPointMult(projectMatrix, transformPoints);
-    }
-
-    public float[][] look(Triangle t) {
-        return null;
+    public void setUpVec(float[] up) {
+        this.up = up;
+        isWorldViewDirty = true;
     }
 
     public void moveX(float dx) {
         pos[0] += dx;
-        isTransformDirty = true;
+        isWorldViewDirty = true;
     }
 
     public void moveY(float dy) {
         pos[1] += dy;
-        isTransformDirty = true;
+        isWorldViewDirty = true;
     }
 
     public void moveZ(float dz) {
         pos[2] += dz;
-        isTransformDirty = true;
+        isWorldViewDirty = true;
+    }
+
+    public float[][] look(float[][] points) {
+        if (isWorldViewDirty) {
+            makeWorldViewMatrix();
+            isWorldViewDirty = false;
+        }
+        float[][] worldViewPoints = Mat.matrixPointMult(worldView, points); // puts into world view space
+        worldViewPoints = Mat.matrixPointMult(projectMatrix, worldViewPoints); // puts in clip space
+        worldViewPoints = perspectiveDivide(worldViewPoints); // puts into NDC
+        //TODO: cull and clip anything outside [-1,1],[-1,1],[-1,1]
+        return worldViewPoints;
     }
 
     /**
-     * We want to do the transforms in reverse order, so
-     * (TRS)^-1=(S^-1)(R^-1)(T^-1), but no scaling
+     * Translates points so that the camera is at the origin, then projects onto camera's axes
+     *
+     * @return A world view matrix
      */
-    private void makeTransformationMatrix() {
-        transformMatrix = Mat.matrixMatrixMult(
-                makeCompleteInverseRotationMatrix(),
-                makeInverseTranslation()
-        );
+    public float[][] makeWorldViewMatrix() {
+        float[] n = Mat.normalize(at);
+        float[] x = Mat.normalize(Mat.cross(n, up));
+        float[] y = Mat.normalize(Mat.cross(x, n));
+        return new float[][] {
+                {x[0],x[1],x[2], -Mat.dot(x, pos)},
+                {y[0],y[1],y[2], -Mat.dot(y, pos)},
+                {n[0], n[1], n[2], -Mat.dot(n, pos)},
+                {0,0,0,1}
+        };
     }
 
     /**
@@ -107,30 +138,17 @@ public class Camera {
         return new float[][] {{1/(float) (aspectRatio*Math.tan(FOV)),0,0,0},
                 {0,1/(float) Math.tan(FOV), 0,0},
                 {0,0,(-zNear-zFar)/(zNear-zFar),2*zNear*zFar/(zNear-zFar)},
-                {0,0,-1,0}};
+                {0,0,1,0}}; // save the z value for depth-checking and perspective divide
     }
 
-    private float[][] makeCompleteInverseRotationMatrix() {
-        float[][] xRot = new float[][] {
-                {1,0,0,0},
-                {0, (float) Math.cos(rotationX), (float) -Math.sin(rotationX),0},
-                {0, (float) Math.sin(rotationX), (float) Math.cos(rotationX),0},
-                {0,0,0,1}
-        };
-        float [][] yRot = new float[][] {
-                {(float) Math.cos(rotationY), 0, (float) Math.sin(rotationY),0},
-                {0,1,0,0},
-                {(float) -Math.sin(rotationY), 0, (float) Math.cos(rotationY),0},
-                {0,0,0,1}
-        };
-        return Mat.matrixMatrixMult(xRot, yRot);
-    }
-
-    private float[][] makeInverseTranslation() {
-        float[][] trans = Matrix.identity();
-        trans[0][3] = -pos[0];
-        trans[1][3] = -pos[1];
-        trans[2][3] = -pos[2];
-        return trans;
+    /**
+     * Puts the vector into NDC coordinates by performing a perspective divide
+     * which maps the z coordinate to [-1,1]. This should follow multiplication by {@link #makeWorldViewMatrix()}
+     */
+    private float[][] perspectiveDivide(float[][] worldViewPoints) {
+        for (int i = 0; i < worldViewPoints.length; i++) {
+            worldViewPoints[i] = Mat.mult(worldViewPoints[i], 1/worldViewPoints[i][3]);
+        }
+        return worldViewPoints;
     }
 }
