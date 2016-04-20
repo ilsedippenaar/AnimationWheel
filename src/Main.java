@@ -62,7 +62,7 @@ public class Main {
             //frame.paint(image);
 
             frame.repaint();
-            Thread.sleep(500); // fewer frames works better for some reason???
+            Thread.sleep(100); // fewer frames works better for some reason???
 
             // All this animation should probably go into a method in the frame itself
             // Some sort of step() method maybe?

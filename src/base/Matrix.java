@@ -34,7 +34,6 @@ public class Matrix {
      * @return A rotation worldView
      */
     public static float[][] makeRotationMatrix(float angle, int axis) {
-        angle = angle < -90 ? -90 : angle > 90 ? 90 : angle;
         angle = angle * (float) Math.PI/180;
         switch (axis) {
             case xAxis:
