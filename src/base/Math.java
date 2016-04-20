@@ -47,7 +47,7 @@ public class Math {
     }
 
     /**
-     * @param M A 4x4 matrix
+     * @param M A 4x4 transformMatrix
      * @param v A vector of length 4
      * @return M*v
      */
@@ -64,16 +64,16 @@ public class Math {
     }
 
     /**
-     * Multiplies a 4-length vector by a 4x4 transformation matrix.
+     * Multiplies a 4-length vector by a 4x4 transformation transformMatrix.
      * Optimized for knowing that M[3] is {0,0,0,1}
      * Should cut operation time by 40-50%
-     * @param M 4x4 Transformation matrix (bottom row is 0,0,0,1)
+     * @param M 4x4 Transformation transformMatrix (bottom row is 0,0,0,1)
      * @param V 4 length vector (last digit is 1)
      * @return M*V
      */
     public static float[] transformationMatrixVecMult(float[][] M, float[] V){
         float[] b = new float[3];
-        // Skip the known elements in the matrix and vector
+        // Skip the known elements in the transformMatrix and vector
         // Since these parts can be accounted for without multiplication
         for (int i = 0; i < 3; i++) {
             float sum = 0;
@@ -112,8 +112,8 @@ public class Math {
     }
 
     /**
-     * @param A A row-major order matrix (4x4)
-     * @param P A column-major order matrix (i.e., an array of points) (4 x anything)
+     * @param A A row-major order transformMatrix (4x4)
+     * @param P A column-major order transformMatrix (i.e., an array of points) (4 x anything)
      * @return A*P
      */
     public static float[][] matrixPointMult(float[][] A, float[][] P) {
@@ -128,8 +128,8 @@ public class Math {
     /**
      * Multiply two 4x4 transformation matricies
      * Optimizing for the fact that both matricies have {0,0,0,1} on the bottom
-     * @param M 4x4 transformation matrix
-     * @param N 4x4 transformation matrix
+     * @param M 4x4 transformation transformMatrix
+     * @param N 4x4 transformation transformMatrix
      * @return
      */
     public static float[][] transformationMatrixMatrixMult(float[][] M, float[][] N){

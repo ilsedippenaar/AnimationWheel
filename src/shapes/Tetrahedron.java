@@ -21,7 +21,7 @@ public class Tetrahedron extends AbstractShape {
                 {0, 1, 1/ (float) Math.sqrt(2),1},
                 {0, -1, 1/ (float) Math.sqrt(2),1}
         };
-        // Done: check for correct order of points for calculating normals
+
         mesh.add(new Triangle(new float[][]{p[0], p[1], p[2]}, Color.RED.getRGB()));
         mesh.add(new Triangle(new float[][]{p[0], p[3], p[1]}, Color.BLUE.getRGB()));
         mesh.add(new Triangle(new float[][]{p[0], p[2], p[3]}, new Color(31, 174, 40).getRGB()));

@@ -14,17 +14,20 @@ import java.util.Collection;
  *
  * Created by Tara on 4/6/2016.
  */
-public class TestFrame extends JFrame implements KeyListener {
-
+public class Frame extends JFrame implements KeyListener {
+    Camera camera;
     ArrayList<AbstractShape> shapes = new ArrayList<>();
-    float[][] Q ={
-            {1,0,0,0},
-            {0,1,0,0},
-            {0,0,0,0},
-            {0,0,0,0}
-    };
+    Matrix.Builder builder = new Matrix.Builder();
     private float x = 0;
     private float y = 0;
+    private float angle = 0;
+    private float[] cameraPos = {0,0,1};
+
+    public Frame() {
+        super();
+        addKeyListener(this);
+        camera = new Camera();
+    }
 
     public void setCameraPos(float[] newPos) {
         cameraPos = newPos;
@@ -34,8 +37,6 @@ public class TestFrame extends JFrame implements KeyListener {
         return cameraPos;
     }
 
-    private float[] cameraPos = {0,0,1};
-
     /**
      * Adds to the angle
      * @param delta Amount to add to angle
@@ -44,21 +45,17 @@ public class TestFrame extends JFrame implements KeyListener {
         angle += delta;
     }
 
-    private float angle = 0;
-
-    public TestFrame(){
-        super();
-        addKeyListener(this);
-    }
-
-
     public void addShape(AbstractShape shape) {shapes.add(shape);}
+
+    // listen for resize events
+    @Override
+    public void validate() {
+        super.validate();
+        camera.setAspectRatio(getWidth() / getHeight());
+    }
 
     @Override
     public void paint(Graphics g){
-        // Not sure if this is needed/wanted
-        //super.paint(g);
-
         // Make an image buffer so the frame updates all at once
         BufferedImage buffer = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D imageBuffer = buffer.createGraphics();
@@ -71,9 +68,8 @@ public class TestFrame extends JFrame implements KeyListener {
 
         for (AbstractShape s : shapes) {
             for (base.Triangle t : s.mesh) {
-                // TODO: optimize all the things
-                // transform the points with world matrix
-                float[][] points = new Matrix.Builder(Math.matrixPointMult(s.transform, t.points))
+                // transform the points with world transformMatrix
+                float[][] points = builder.setPoints(Math.matrixPointMult(s.transform, t.points))
                         .translate(x, y, 0)
                         .project(cameraPos, Math.normalize(Math.mult(cameraPos,-1)))
                         .rotate(angle, Matrix.yAxis)
@@ -96,8 +92,6 @@ public class TestFrame extends JFrame implements KeyListener {
         // Draw the buffered frame
         Graphics2D g2D = (Graphics2D) g;
         g2D.drawImage(buffer, null, 0,0);
-
-
     }
 
     @Override
@@ -108,19 +102,21 @@ public class TestFrame extends JFrame implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         switch (e.getExtendedKeyCode()) {
-            case KeyEvent.VK_W: // forward
-                //Q = new Matrix.Builder(Q).rotate(20, Matrix.xAxis).build();
+            case KeyEvent.VK_W:
                 y += 50;
+                camera.moveZ(50);
                 break;
-            case KeyEvent.VK_S: //backward
+            case KeyEvent.VK_S:
                 y -= 50;
-                //Q = new Matrix.Builder(Q).rotate(-20, Matrix.xAxis).build();
+                camera.moveZ(-50);
                 break;
             case KeyEvent.VK_D:
                 x += 50;
+                camera.moveY(50);
                 break;
             case KeyEvent.VK_A:
                 x -= 50;
+                camera.moveY(-50);
                 break;
             case KeyEvent.VK_R:
                 angle += 20;
@@ -136,7 +132,7 @@ public class TestFrame extends JFrame implements KeyListener {
 
     /**
      * @param points Points of a triangle ready to be painted
-     * @return A matrix with two rows, one for x values, the other for y values
+     * @return A transformMatrix with two rows, one for x values, the other for y values
      */
     private int[][] coordinatesToJFrame(float [][] points) {
         int midHeight = getHeight()/2;

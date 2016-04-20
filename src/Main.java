@@ -9,7 +9,7 @@ public class Main {
 
     public static void main(String[] args) throws InterruptedException {
         // Setup the frame
-        TestFrame frame = new TestFrame();
+        Frame frame = new Frame();
         // Set size
         frame.setSize(800,600);
         // Set position to middle of screen
@@ -59,7 +59,7 @@ public class Main {
             //frame.paint(image);
 
             frame.repaint();
-            Thread.sleep(40); // fewer frames works better for some reason???
+            Thread.sleep(100); // fewer frames works better for some reason???
 
             // All this animation should probably go into a method in the frame itself
             // Some sort of step() method maybe?

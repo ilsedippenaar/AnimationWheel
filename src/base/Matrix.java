@@ -17,7 +17,7 @@ public class Matrix {
      * @param transX Translation in the x direction
      * @param transY Translation in the y direction
      * @param transZ Translation in the z direction
-     * @return A translation matrix
+     * @return A translation transformMatrix
      */
     public static float[][] makeTranslationMatrix(float transX, float transY, float transZ) {
         float[][] matrix = identity();
@@ -30,9 +30,10 @@ public class Matrix {
     /**
      * @param angle The angle to rotate around in degrees
      * @param axis Either {@link #xAxis Matrix.xAxis} or {@link #yAxis Matrix.yAxis}
-     * @return A rotation matrix
+     * @return A rotation transformMatrix
      */
     public static float[][] makeRotationMatrix(float angle, int axis) {
+        angle = angle < -90 ? -90 : angle > 90 ? 90 : angle;
         angle = angle * (float) java.lang.Math.PI/180;
         switch (axis) {
             case xAxis:
@@ -57,7 +58,7 @@ public class Matrix {
      * @param scaleX Multiple for x direction (1 for no effect)
      * @param scaleY Multiple for y direction (1 for no effect)
      * @param scaleZ Multiple for z direction (1 for no effect)
-     * @return A scale matrix
+     * @return A scale transformMatrix
      */
     public static float[][] makeScaleMatrix(float scaleX, float scaleY, float scaleZ) {
         float[][] matrix = identity();
@@ -74,7 +75,7 @@ public class Matrix {
      * @param up The up vector (should be {0,1,0,0} for no camera roll)
      * @param at The direction the eye should look at
      * @param distance The distance from the camera to the viewport (should be {@link #DEFAULT_DISTANCE})
-     * @return A projection matrix
+     * @return A projection transformMatrix
      */
     @Deprecated
     public static float[][] makeProjectionMatrixOld(float[] eye, float[] up, float[] at, float distance) {
@@ -84,28 +85,9 @@ public class Matrix {
         return new float[][] {
                 {x[0],x[1],x[2], -Math.dot(x, eye)},
                 {y[0],y[1],y[2], -Math.dot(y, eye)},
-                {0,0,0,0},
-                {n[0]/distance, n[1]/distance, n[2]/distance, -Math.dot(n, eye)/distance}
+                {n[0]/distance, n[1]/distance, n[2]/distance, -Math.dot(n, eye)/distance},
+                {0,0,0,0}
         };
-    }
-
-    /**
-     * Maps points in the view frustum to normalized device coordinates so  that
-     * x, y, and z are in the range (-1, 1). Based mostly on
-     * <a href="http://www.ogldev.org/www/tutorial12/tutorial12.html"/>this site</a>.
-     *
-     * @param aspectRatio The aspect ratio of the screen (x/y)
-     * @param fov The field of view in degrees (0 to 90)
-     * @param near The distance to the near clipping plane
-     * @param far The distance to the far clipping plane
-     * @return A perspective projection matrix
-     */
-    // TODO: move to Camera class?
-    public static float[][] makeProjectionMatrix(float aspectRatio, float fov, float near, float far) {
-        return new float[][] {{1/(float) (aspectRatio*java.lang.Math.tan(fov)),0,0,0},
-                {0,1/(float) java.lang.Math.tan(fov), 0,0},
-                {0,0,(-near-far)/(near-far),2*near*far/(near-far)},
-                {0,0,-1,0}};
     }
 
     public static class Builder {
@@ -123,7 +105,7 @@ public class Matrix {
 
         public float[][] build() {
             // TODO: make more efficient
-            // order: Projection * Translation * Rotation * Scale
+            // order: Translation * Rotation * Scale
             float[][] matrix = Math.matrixMatrixMult(rotation, scaleMat);
             matrix = Math.matrixMatrixMult(translation, matrix);
             matrix = Math.matrixMatrixMult(projection, matrix);
@@ -160,6 +142,11 @@ public class Matrix {
 
         public Builder scale(float scale) {
             scaleMat = makeScaleMatrix(scale, scale, scale);
+            return this;
+        }
+
+        public Builder setPoints(float[][] points) {
+            this.points = points;
             return this;
         }
 
