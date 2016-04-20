@@ -1,5 +1,5 @@
 import base.*;
-import base.Math;
+import base.Mat;
 
 public class Camera {
     public float aspectRatio = 1; // x/y
@@ -41,6 +41,16 @@ public class Camera {
         isTransformDirty = true;
     }
 
+    public void rotateXBy(float dx) {
+        rotationX += dx;
+        isTransformDirty = true;
+    }
+
+    public void rotateYBy(float dy) {
+        rotationX += dy;
+        isTransformDirty = true;
+    }
+
     public void setPos(float[] pos) {
         this.pos = pos;
         isTransformDirty = true;
@@ -51,9 +61,9 @@ public class Camera {
             makeTransformationMatrix();
             isTransformDirty = false;
         }
-        float[][] transformPoints = base.Math.matrixPointMult(transformMatrix, points);
+        float[][] transformPoints = Mat.matrixPointMult(transformMatrix, points);
         // send points to renderer for mapping to NDC, culling, and clipping
-        return Math.matrixPointMult(projectMatrix, transformPoints);
+        return Mat.matrixPointMult(projectMatrix, transformPoints);
     }
 
     public float[][] look(Triangle t) {
@@ -80,7 +90,7 @@ public class Camera {
      * (TRS)^-1=(S^-1)(R^-1)(T^-1), but no scaling
      */
     private void makeTransformationMatrix() {
-        transformMatrix = base.Math.matrixMatrixMult(
+        transformMatrix = Mat.matrixMatrixMult(
                 makeCompleteInverseRotationMatrix(),
                 makeInverseTranslation()
         );
@@ -94,8 +104,8 @@ public class Camera {
      * @return A perspective projection matrix
      */
     private float[][] makeProjectionMatrix() {
-        return new float[][] {{1/(float) (aspectRatio*java.lang.Math.tan(FOV)),0,0,0},
-                {0,1/(float) java.lang.Math.tan(FOV), 0,0},
+        return new float[][] {{1/(float) (aspectRatio*Math.tan(FOV)),0,0,0},
+                {0,1/(float) Math.tan(FOV), 0,0},
                 {0,0,(-zNear-zFar)/(zNear-zFar),2*zNear*zFar/(zNear-zFar)},
                 {0,0,-1,0}};
     }
@@ -103,17 +113,17 @@ public class Camera {
     private float[][] makeCompleteInverseRotationMatrix() {
         float[][] xRot = new float[][] {
                 {1,0,0,0},
-                {0, (float) java.lang.Math.cos(rotationX), (float) -java.lang.Math.sin(rotationX),0},
-                {0, (float) java.lang.Math.sin(rotationX), (float) java.lang.Math.cos(rotationX),0},
+                {0, (float) Math.cos(rotationX), (float) -Math.sin(rotationX),0},
+                {0, (float) Math.sin(rotationX), (float) Math.cos(rotationX),0},
                 {0,0,0,1}
         };
         float [][] yRot = new float[][] {
-                {(float) java.lang.Math.cos(rotationY), 0, (float) java.lang.Math.sin(rotationY),0},
+                {(float) Math.cos(rotationY), 0, (float) Math.sin(rotationY),0},
                 {0,1,0,0},
-                {(float) -java.lang.Math.sin(rotationY), 0, (float) java.lang.Math.cos(rotationY),0},
+                {(float) -Math.sin(rotationY), 0, (float) Math.cos(rotationY),0},
                 {0,0,0,1}
         };
-        return Math.matrixMatrixMult(xRot, yRot);
+        return Mat.matrixMatrixMult(xRot, yRot);
     }
 
     private float[][] makeInverseTranslation() {

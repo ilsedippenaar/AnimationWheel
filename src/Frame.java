@@ -1,5 +1,5 @@
 import base.*;
-import base.Math;
+import base.Mat;
 import shapes.AbstractShape;
 
 import javax.swing.*;
@@ -8,7 +8,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  *
@@ -42,7 +41,15 @@ public class Frame extends JFrame implements KeyListener {
      * @param delta Amount to add to angle
      */
     public void modifyAngle(float delta) {
-        angle += delta;
+        angle = (angle + delta)%360;
+        //TODO: remove this temp code
+        shapes.get(0).setTransform(
+                builder.scale(50)
+                .translate(0,0,-30)
+                .rotateZ(angle)
+                .build()
+        );
+        System.out.println(angle);
     }
 
     public void addShape(AbstractShape shape) {shapes.add(shape);}
@@ -64,24 +71,24 @@ public class Frame extends JFrame implements KeyListener {
         imageBuffer.setColor(Color.white);
         imageBuffer.fillRect(0,0,getWidth(),getHeight());
 
-        float[] facing=base.Math.normalize(base.Math.mult(cameraPos,-1));
+        float[] facing= Mat.normalize(Mat.mult(cameraPos, -1));
 
         for (AbstractShape s : shapes) {
             for (base.Triangle t : s.mesh) {
                 // transform the points with world transformMatrix
-                float[][] points = builder.setPoints(Math.matrixPointMult(s.transform, t.points))
+                /*float[][] points = builder.setPoints(Mat.matrixPointMult(s.transform, t.points))
                         .translate(x, y, 0)
-                        .project(cameraPos, Math.normalize(Math.mult(cameraPos,-1)))
+                        .project(cameraPos, Mat.normalize(Mat.mult(cameraPos, -1)))
                         .rotate(angle, Matrix.yAxis)
-                        .build();
-                // project the points onto view frame
+                        .build();*/
+                float[][] points = camera.look(Mat.matrixPointMult(s.transform, t.points));
 
                 // Cull tris facing away (which solves depth-checking for simple shapes)
-                float[] edge1=base.Math.subtract(points[0], points[1]);
-                float[] edge2=base.Math.subtract(points[0], points[2]);
-                float[] norm = base.Math.cross(edge1, edge2);
+                float[] edge1= Mat.subtract(points[0], points[1]);
+                float[] edge2= Mat.subtract(points[0], points[2]);
+                float[] norm = Mat.cross(edge1, edge2);
 
-                if(base.Math.dot(norm, facing)<0) {
+                if(Mat.dot(norm, facing)<0) {
                     int[][] coords = coordinatesToJFrame(points);
                     imageBuffer.setColor(new Color(t.color));
                     imageBuffer.fillPolygon(coords[0], coords[1], 3);
@@ -120,6 +127,7 @@ public class Frame extends JFrame implements KeyListener {
                 break;
             case KeyEvent.VK_R:
                 angle += 20;
+                camera.rotateXBy(20);
                 break;
         }
     }

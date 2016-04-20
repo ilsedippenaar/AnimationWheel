@@ -8,6 +8,7 @@ package base;
 public class Matrix {
     public static final int xAxis = 0;
     public static final int yAxis = 1;
+    public static final int zAxis = 2;
     public static final float DEFAULT_DISTANCE = 100;
 
     public static float[][] identity() {
@@ -34,19 +35,26 @@ public class Matrix {
      */
     public static float[][] makeRotationMatrix(float angle, int axis) {
         angle = angle < -90 ? -90 : angle > 90 ? 90 : angle;
-        angle = angle * (float) java.lang.Math.PI/180;
+        angle = angle * (float) Math.PI/180;
         switch (axis) {
             case xAxis:
                 return new float[][] {
                         {1,0,0,0},
-                        {0, (float) java.lang.Math.cos(angle), (float) java.lang.Math.sin(angle),0},
-                        {0, (float) -java.lang.Math.sin(angle), (float) java.lang.Math.cos(angle),0},
+                        {0, (float) Math.cos(angle), (float) Math.sin(angle),0},
+                        {0, (float) -Math.sin(angle), (float) Math.cos(angle),0},
                         {0,0,0,1}};
             case yAxis:
                 return new float[][] {
-                        {(float) java.lang.Math.cos(angle), 0, (float) -java.lang.Math.sin(angle),0},
+                        {(float) Math.cos(angle), 0, (float) -Math.sin(angle),0},
                         {0,1,0,0},
-                        {(float) java.lang.Math.sin(angle), 0, (float) java.lang.Math.cos(angle),0},
+                        {(float) Math.sin(angle), 0, (float) Math.cos(angle),0},
+                        {0,0,0,1}
+                };
+            case zAxis:
+                return new float[][] {
+                        {(float) Math.cos(angle), 0, (float) Math.sin(angle),0},
+                        {(float) -Math.sin(angle), 0, (float) Math.cos(angle),0},
+                        {0,1,0,0},
                         {0,0,0,1}
                 };
             default:
@@ -79,20 +87,22 @@ public class Matrix {
      */
     @Deprecated
     public static float[][] makeProjectionMatrixOld(float[] eye, float[] up, float[] at, float distance) {
-        float[] n = Math.normalize(Math.subtract(at, eye));
-        float[] y = Math.normalize(Math.subtract(up, Math.project(n, up)));
-        float[] x = Math.normalize(Math.cross(n, y));
+        float[] n = Mat.normalize(Mat.subtract(at, eye));
+        float[] y = Mat.normalize(Mat.subtract(up, Mat.project(n, up)));
+        float[] x = Mat.normalize(Mat.cross(n, y));
         return new float[][] {
-                {x[0],x[1],x[2], -Math.dot(x, eye)},
-                {y[0],y[1],y[2], -Math.dot(y, eye)},
-                {n[0]/distance, n[1]/distance, n[2]/distance, -Math.dot(n, eye)/distance},
+                {x[0],x[1],x[2], -Mat.dot(x, eye)},
+                {y[0],y[1],y[2], -Mat.dot(y, eye)},
+                {n[0]/distance, n[1]/distance, n[2]/distance, -Mat.dot(n, eye)/distance},
                 {0,0,0,0}
         };
     }
 
     public static class Builder {
         private float[][] translation = identity(),
-                rotation = identity(),
+                rotationX = identity(),
+                rotationY = identity(),
+                rotationZ = identity(),
                 scaleMat = identity(),
                 projection = identity();
         private float[][] points;
@@ -106,11 +116,13 @@ public class Matrix {
         public float[][] build() {
             // TODO: make more efficient
             // order: Translation * Rotation * Scale
-            float[][] matrix = Math.matrixMatrixMult(rotation, scaleMat);
-            matrix = Math.matrixMatrixMult(translation, matrix);
-            matrix = Math.matrixMatrixMult(projection, matrix);
+            float[][] matrix = Mat.matrixMatrixMult(rotationX, scaleMat);
+            matrix = Mat.matrixMatrixMult(rotationY, matrix);
+            matrix = Mat.matrixMatrixMult(rotationZ, matrix);
+            matrix = Mat.matrixMatrixMult(translation, matrix);
+            matrix = Mat.matrixMatrixMult(projection, matrix);
             if (points != null) {
-                return Math.matrixPointMult(matrix, points);
+                return Mat.matrixPointMult(matrix, points);
             }
             return matrix;
         }
@@ -125,8 +137,21 @@ public class Matrix {
             return this;
         }
 
-        public Builder rotate(float angle, int axis) {
-            rotation = makeRotationMatrix(angle, axis);
+        /**
+         * Prone to gimbal lock
+         */
+        public Builder rotateX(float angle) {
+            rotationX = makeRotationMatrix(angle, xAxis);
+            return this;
+        }
+
+        public Builder rotateY(float angle) {
+            rotationY = makeRotationMatrix(angle, yAxis);
+            return this;
+        }
+
+        public Builder rotateZ(float angle) {
+            rotationZ = makeRotationMatrix(angle, zAxis);
             return this;
         }
 

@@ -43,7 +43,11 @@ public class Main {
         //*/
 
         Tetrahedron t = new Tetrahedron();
-        t.setTransform(new Matrix.Builder().rotate(15, Matrix.yAxis).scale(50).build());
+        t.setTransform(new Matrix.Builder()
+                .rotateY(15)
+                .scale(50)
+                .translate(0, 0, -100)
+                .build());
         frame.addShape(t);
 
         frame.setCameraPos(new float[]{0,0,30});
@@ -51,21 +55,21 @@ public class Main {
         boolean persist = true;
         boolean up=true;
 
-        float cameraBob = 1.5F; // Camera y change per frame
-        float cameraMax = 15; // Camera y bounds (-max to max)
+        //float cameraBob = 1.5F; // Camera y change per frame
+        //float cameraMax = 15; // Camera y bounds (-max to max)
         while(persist){
             // Do stuff
 
             //frame.paint(image);
 
             frame.repaint();
-            Thread.sleep(100); // fewer frames works better for some reason???
+            Thread.sleep(500); // fewer frames works better for some reason???
 
             // All this animation should probably go into a method in the frame itself
             // Some sort of step() method maybe?
 
-            frame.modifyAngle(1.5F); // Rotate over time
-            if(up){
+            frame.modifyAngle(30f); // Rotate over time
+            /*if(up){
                 float[] newCam=frame.getCameraPos();
                 newCam[1]+=cameraBob;
                 if(newCam[1]>cameraMax)
@@ -75,7 +79,7 @@ public class Main {
                 newCam[1]-=cameraBob;
                 if(newCam[1]<-cameraMax)
                     up=true;
-            }
+            }*/
 
 
         }
