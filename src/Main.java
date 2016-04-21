@@ -49,8 +49,6 @@ public class Main {
                 .build());
         frame.addShape(t);
 
-        frame.setCameraPos(new float[]{0,0,30});
-
         boolean persist = true;
         boolean up=true;
 

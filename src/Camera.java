@@ -19,30 +19,31 @@ public class Camera {
 
 
     // for world view transformation
-    private float[] pos = {0,0,0,1};
-    private float[] at = {0,0,-1,0};
+    public float[] pos = {0,0,0,1};
+    public float[] at = {0,0,-1,0};
     private float[] up = {0,1,0,0};
-    private float[][] worldView = makeWorldViewMatrix();
+    private float[][] worldView;
     private boolean isWorldViewDirty = true;
+
 
     public void setAspectRatio(float aspectRatio) {
         this.aspectRatio = aspectRatio;
-        makeProjectionMatrix();
+        projectMatrix = makeProjectionMatrix();
     }
 
     public void setFOV(float FOV) {
         this.FOV = FOV;
-        makeProjectionMatrix();
+        projectMatrix = makeProjectionMatrix();
     }
 
     public void setZNear(float zNear) {
         this.zNear = zNear;
-        makeProjectionMatrix();
+        projectMatrix = makeProjectionMatrix();
     }
 
     public void setZFar(float zFar) {
         this.zFar = zFar;
-        makeProjectionMatrix();
+        projectMatrix = makeProjectionMatrix();
     }
 
     public void setRotationX(float rotationX) {
@@ -100,7 +101,7 @@ public class Camera {
 
     public float[][] look(float[][] points) {
         if (isWorldViewDirty) {
-            makeWorldViewMatrix();
+            worldView = makeWorldViewMatrix();
             isWorldViewDirty = false;
         }
         float[][] worldViewPoints = Mat.matrixPointMult(worldView, points); // puts into world view space

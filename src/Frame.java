@@ -17,10 +17,7 @@ public class Frame extends JFrame implements KeyListener {
     Camera camera;
     ArrayList<AbstractShape> shapes = new ArrayList<>();
     Matrix.Builder builder = new Matrix.Builder();
-    private float x = 0;
-    private float y = 0;
     private float angle = 0;
-    private float[] cameraPos = {0,0,1};
 
     public Frame() {
         super();
@@ -29,11 +26,11 @@ public class Frame extends JFrame implements KeyListener {
     }
 
     public void setCameraPos(float[] newPos) {
-        cameraPos = newPos;
+        camera.setPos(newPos);
     }
 
     public float[] getCameraPos() {
-        return cameraPos;
+        return camera.pos;
     }
 
     /**
@@ -43,13 +40,12 @@ public class Frame extends JFrame implements KeyListener {
     public void modifyAngle(float delta) {
         angle = (angle + delta)%360;
         //TODO: remove this temp code
-        shapes.get(0).setTransform(
-                builder.scale(20)
-                .translate(0,0,-100)
-                .rotateY(angle)
-                .build()
+        shapes.get(0).setTransform(builder
+                        .scale(20)
+                        .translate(0,0,-100)
+                        .rotateY(angle)
+                        .build()
         );
-        System.out.println(angle);
     }
 
     public void addShape(AbstractShape shape) {shapes.add(shape);}
@@ -71,7 +67,7 @@ public class Frame extends JFrame implements KeyListener {
         imageBuffer.setColor(Color.white);
         imageBuffer.fillRect(0,0,getWidth(),getHeight());
 
-        float[] facing= Mat.normalize(Mat.mult(cameraPos, -1));
+        float[] facing= Mat.normalize(camera.at);
 
         for (AbstractShape s : shapes) {
             for (base.Triangle t : s.mesh) {
@@ -110,24 +106,20 @@ public class Frame extends JFrame implements KeyListener {
     public void keyPressed(KeyEvent e) {
         switch (e.getExtendedKeyCode()) {
             case KeyEvent.VK_W:
-                y += 50;
-                camera.moveZ(50);
-                break;
-            case KeyEvent.VK_S:
-                y -= 50;
                 camera.moveZ(-50);
                 break;
+            case KeyEvent.VK_S:
+                camera.moveZ(50);
+                break;
             case KeyEvent.VK_D:
-                x += 50;
-                camera.moveY(50);
+                camera.moveX(50);
                 break;
             case KeyEvent.VK_A:
-                x -= 50;
-                camera.moveY(-50);
+                camera.moveX(-50);
                 break;
             case KeyEvent.VK_R:
-                angle += 20;
-                camera.rotateXBy(20);
+                //angle += 20;
+                camera.rotateYBy(20);
                 break;
         }
     }
