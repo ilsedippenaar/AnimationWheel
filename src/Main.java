@@ -11,6 +11,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import shapes.AbstractShape;
+import shapes.Cube;
 import shapes.Tetrahedron;
 
 import java.util.ArrayList;
@@ -42,7 +43,10 @@ public class Main extends Application implements EventHandler<KeyEvent> {
         root.getChildren().add(canvas);
 
         Tetrahedron t = new Tetrahedron();
-        shapes.add(t);
+        //shapes.add(t);
+
+        Cube c=new Cube();
+        shapes.add(c);
 
         last = System.nanoTime();
 
