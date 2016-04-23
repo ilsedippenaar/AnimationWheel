@@ -32,6 +32,8 @@ public class Main extends Application implements EventHandler<KeyEvent> {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        System.out.println("W/S to move Z\nA/D to move X\nR/F to move Y\nQ/E to rotate around Y axis\nZ to reset facing towards origin");
+
         primaryStage.setTitle("AnimationWheel");
         Group root = new Group();
         Scene scene = new Scene(root);
@@ -48,6 +50,11 @@ public class Main extends Application implements EventHandler<KeyEvent> {
         Cube c=new Cube();
         shapes.add(c);
 
+        camera.moveZ(100); // Do this to keep shapes centered on the origin
+        camera.moveY(40);
+        camera.faceTowardsOrigin();
+
+
         last = System.nanoTime();
 
         new AnimationTimer() {
@@ -63,26 +70,32 @@ public class Main extends Application implements EventHandler<KeyEvent> {
     private void step(GraphicsContext context, long time) {
         // clear canvas to draw again
         context.clearRect(0, 0, width, height);
-        float[] facing= Mat.normalize(camera.at);
 
         angle = (angle + 1f*(time-last)/(16.66666f*1000000)) % 360;
         float[][] tetrahedronMatrix = builder
                 .scale(20)
-                .translate(0,0,-100)
+                .translate(0,0,0)
                 .rotateY(angle)
                 .build();
         shapes.get(0).setTransform(tetrahedronMatrix);
 
         for (AbstractShape s : shapes) {
             for (base.Triangle t : s.mesh) {
-                float[][] points = camera.look(Mat.matrixPointMult(s.transform, t.points));
+                // This applies the movements we've made to the shapes
+                float[][] points=Mat.matrixPointMult(s.transform, t.points);
+
 
                 // Cull tris facing away (which solves depth-checking for simple shapes)
+                // This needs to be done before applying perspective
                 float[] edge1= Mat.subtract(points[0], points[1]);
                 float[] edge2= Mat.subtract(points[0], points[2]);
                 float[] norm = Mat.cross(edge1, edge2);
 
-                if(Mat.dot(norm, facing)<0) {
+                // With perspective instead of isometric, we use this instead of the raw facing
+                float[] toTri = Mat.subtract(camera.pos,points[0]);
+
+                if(Mat.dot(norm, toTri)<0) {
+                    points = camera.look(points);
                     double[][] coords = pointsToDisplayPoints(points);
                     context.setFill(Color.rgb((t.color&0xff0000)>>16, (t.color&0x00ff00)>>8, t.color&0x0000ff));
                     context.fillPolygon(coords[0], coords[1], 3);
@@ -107,11 +120,20 @@ public class Main extends Application implements EventHandler<KeyEvent> {
             case A:
                 camera.moveX(-5);
                 break;
-            case R:
+            case E:
                 camera.rotateYBy(2);
                 break;
             case Q:
                 camera.rotateYBy(-2);
+                break;
+            case R:
+                camera.moveY(5);
+                break;
+            case F:
+                camera.moveY(-5);
+                break;
+            case Z:
+                camera.faceTowardsOrigin();
                 break;
         }
     }

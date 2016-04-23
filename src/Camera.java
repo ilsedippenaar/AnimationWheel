@@ -20,7 +20,7 @@ public class Camera {
 
     // for world view transformation
     public float[] pos = {0,0,0,1};
-    public float[] at = {0,0,-1,0};
+    public float[] facing = {0,0,-1,0};
     private float[] up = {0,1,0,0};
     private float[][] worldView;
     private boolean isWorldViewDirty = true;
@@ -36,6 +36,20 @@ public class Camera {
         projectMatrix = makeProjectionMatrix();
     }
 
+    public void faceTowards(float[] target){
+        float[] diff=Mat.subtract(target, pos);
+        //If target = pos
+        if(Mat.magnitude(diff)==0)
+            return;
+        facing=Mat.normalize(diff);
+        facing[3]=0;
+        isWorldViewDirty=true;
+    }
+
+    public void faceTowardsOrigin(){
+        faceTowards(new float[]{0,0,0,0});
+    }
+
     public void setZNear(float zNear) {
         this.zNear = zNear;
         projectMatrix = makeProjectionMatrix();
@@ -47,30 +61,30 @@ public class Camera {
     }
 
     public void setRotationX(float rotationX) {
-        at = Mat.matrixVecMult(
+        facing = Mat.matrixVecMult(
                 Matrix.makeRotationMatrix(rotationX, Matrix.xAxis),
                 new float[] {0,0,-1,0});
         isWorldViewDirty = true;
     }
 
     public void setRotationY(float rotationY) {
-        at = Mat.matrixVecMult(
+        facing = Mat.matrixVecMult(
                 Matrix.makeRotationMatrix(rotationY, Matrix.yAxis),
                 new float[] {0,0,-1,0});
         isWorldViewDirty = true;
     }
 
     public void rotateXBy(float dx) {
-        at = Mat.matrixVecMult(
+        facing = Mat.matrixVecMult(
                 Matrix.makeRotationMatrix(dx, Matrix.xAxis),
-                at);
+                facing);
         isWorldViewDirty = true;
     }
 
     public void rotateYBy(float dy) {
-        at = Mat.matrixVecMult(
+        facing = Mat.matrixVecMult(
                 Matrix.makeRotationMatrix(dy, Matrix.yAxis),
-                at);
+                facing);
         isWorldViewDirty = true;
     }
 
@@ -117,7 +131,7 @@ public class Camera {
      * @return A world view matrix
      */
     public float[][] makeWorldViewMatrix() {
-        float[] n = Mat.normalize(at);
+        float[] n = Mat.normalize(facing);
         float[] x = Mat.normalize(Mat.cross(n, up));
         float[] y = Mat.normalize(Mat.cross(x, n));
         return new float[][] {
