@@ -11,6 +11,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import shapes.AbstractShape;
+import shapes.Axes;
 import shapes.Cube;
 import shapes.Tetrahedron;
 
@@ -23,7 +24,8 @@ public class Main extends Application implements EventHandler<KeyEvent> {
 
     Camera camera = new Camera();
     ArrayList<AbstractShape> shapes = new ArrayList<>();
-    Matrix.Builder builder = new Matrix.Builder();
+    Matrix.Builder tetBuilder = new Matrix.Builder();
+    Matrix.Builder cubeBuilder = new Matrix.Builder();
     private float angle = 0;
 
     public static void main(String[] args) throws InterruptedException {
@@ -45,10 +47,13 @@ public class Main extends Application implements EventHandler<KeyEvent> {
         root.getChildren().add(canvas);
 
         Tetrahedron t = new Tetrahedron();
-        //shapes.add(t);
+        shapes.add(t);
 
         Cube c=new Cube();
         shapes.add(c);
+
+        Axes a = new Axes();
+        shapes.add(a);
 
         camera.moveZ(100); // Do this to keep shapes centered on the origin
         camera.moveY(40);
@@ -72,12 +77,18 @@ public class Main extends Application implements EventHandler<KeyEvent> {
         context.clearRect(0, 0, width, height);
 
         angle = (angle + 1f*(time-last)/(16.66666f*1000000)) % 360;
-        float[][] tetrahedronMatrix = builder
+        float[][] tetrahedronMatrix = tetBuilder
                 .scale(20)
                 .translate(0,0,0)
-                .rotateY(angle)
                 .build();
         shapes.get(0).setTransform(tetrahedronMatrix);
+
+        float[][] cubeMatrix = cubeBuilder
+                .scale(20)
+                .translate(0,0,-400)
+                .rotateY(-angle)
+                .build();
+        shapes.get(1).setTransform(cubeMatrix);
 
         for (AbstractShape s : shapes) {
             for (base.Triangle t : s.mesh) {
