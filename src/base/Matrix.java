@@ -84,14 +84,16 @@ public class Matrix {
                 projection = identity();
         private float[][] points;
 
-        public Builder() {}
+        public Builder() {
+            reset();
+        }
 
         public Builder(float[][] points) {
             this.points = points;
+            reset();
         }
 
         public float[][] build() {
-            // TODO: make more efficient
             // order: Translation * Rotation * Scale
             float[][] matrix = Mat.matrixMatrixMult(rotationX, scaleMat);
             matrix = Mat.matrixMatrixMult(rotationY, matrix);
@@ -102,6 +104,16 @@ public class Matrix {
                 return Mat.matrixPointMult(matrix, points);
             }
             return matrix;
+        }
+
+        public Builder reset() {
+            translation = identity();
+            rotationX = identity();
+            rotationY = identity();
+            rotationZ = identity();
+            scaleMat = identity();
+            projection = identity();
+            return this;
         }
 
         public Builder translate(float[] translate) {

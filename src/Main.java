@@ -24,8 +24,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
 
     Camera camera = new Camera();
     ArrayList<AbstractShape> shapes = new ArrayList<>();
-    Matrix.Builder tetBuilder = new Matrix.Builder();
-    Matrix.Builder cubeBuilder = new Matrix.Builder();
+    Matrix.Builder builder = new Matrix.Builder();
     private float angle = 0;
 
     public static void main(String[] args) throws InterruptedException {
@@ -77,13 +76,15 @@ public class Main extends Application implements EventHandler<KeyEvent> {
         context.clearRect(0, 0, width, height);
 
         angle = (angle + 1f*(time-last)/(16.66666f*1000000)) % 360;
-        float[][] tetrahedronMatrix = tetBuilder
+        float[][] tetrahedronMatrix = builder
+                .reset()
                 .scale(20)
                 .translate(0,0,0)
                 .build();
         shapes.get(0).setTransform(tetrahedronMatrix);
 
-        float[][] cubeMatrix = cubeBuilder
+        float[][] cubeMatrix = builder
+                .reset()
                 .scale(20)
                 .translate(0,0,-400)
                 .rotateY(-angle)
@@ -107,9 +108,11 @@ public class Main extends Application implements EventHandler<KeyEvent> {
 
                 if(Mat.dot(norm, toTri)<0) {
                     points = camera.look(points);
-                    double[][] coords = pointsToDisplayPoints(points);
-                    context.setFill(Color.rgb((t.color&0xff0000)>>16, (t.color&0x00ff00)>>8, t.color&0x0000ff));
-                    context.fillPolygon(coords[0], coords[1], 3);
+                    if (points != null) {
+                        double[][] coords = pointsToDisplayPoints(points);
+                        context.setFill(Color.rgb((t.color & 0xff0000) >> 16, (t.color & 0x00ff00) >> 8, t.color & 0x0000ff));
+                        context.fillPolygon(coords[0], coords[1], 3);
+                    }
                 }
             }
         }

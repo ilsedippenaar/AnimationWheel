@@ -121,7 +121,8 @@ public class Camera {
         float[][] worldViewPoints = Mat.matrixPointMult(worldView, points); // puts into world view space
         worldViewPoints = Mat.matrixPointMult(projectMatrix, worldViewPoints); // puts in clip space
         worldViewPoints = perspectiveDivide(worldViewPoints); // puts into NDC
-        //TODO: cull and clip anything outside [-1,1],[-1,1],[-1,1]
+        // TODO: better clipping algorithm
+        worldViewPoints = clip(worldViewPoints);
         return worldViewPoints;
     }
 
@@ -154,6 +155,17 @@ public class Camera {
                 {0,1/(float) Math.tan(FOV), 0,0},
                 {0,0,(-zNear-zFar)/(zNear-zFar),2*zNear*zFar/(zNear-zFar)},
                 {0,0,1,0}}; // save the z value for depth-checking and perspective divide
+    }
+
+    private float[][] clip(float[][] points) {
+        for (int i = 0; i < points.length; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (Math.abs(points[i][j]) >= 1) {
+                    return null;
+                }
+            }
+        }
+        return points;
     }
 
     /**
