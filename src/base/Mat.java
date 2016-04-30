@@ -196,4 +196,40 @@ public class Mat {
     public static float[] project(float[] u, float[] v) {
         return mult(u, dot(u, v));
     }
+
+    /**
+     * Multiplies each channel of {@param color} by {@param by}
+     */
+    public static int multByChannel(int color, float by) {
+        int r = Math.min(Math.round(((color & 0xff0000) >> 16) * by), 0xff);
+        int g = Math.min(Math.round(((color & 0xff00) >> 8) * by), 0xff);
+        int b = Math.min(Math.round((color & 0xff) * by), 0xff);
+        return (r<<16) + (g<<8) + b;
+    }
+
+    public static int addColorsWithThreshold(int[] colors) {
+        int r = 0, g = 0, b = 0;
+        for (int color : colors) {
+            r += (color&0xff0000)>>16;
+            g += (color&0xff00)>>8;
+            b += color&0xff;
+        }
+        r = Math.min(r, 0xff);
+        g = Math.min(g, 0xff);
+        b = Math.min(b, 0xff);
+        return (r<<16) + (g<<8) + b;
+    }
+
+    public static int averageColors(int[] colors) {
+        int r = 0, g = 0, b = 0;
+        for (int color : colors) {
+            r += (color&0xff0000)>>16;
+            g += (color&0xff00)>>8;
+            b += color&0xff;
+        }
+        r /= colors.length;
+        g /= colors.length;
+        b /= colors.length;
+        return (r<<16) + (g<<8) + b;
+    }
 }

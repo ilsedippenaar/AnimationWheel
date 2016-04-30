@@ -1,5 +1,6 @@
 import base.Mat;
 import base.Matrix;
+import base.Triangle;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.event.EventHandler;
@@ -10,6 +11,9 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import lights.AbstractLight;
+import lights.AmbientLight;
+import lights.PointLight;
 import shapes.AbstractShape;
 import shapes.Axes;
 import shapes.Cube;
@@ -24,6 +28,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
 
     Camera camera = new Camera();
     ArrayList<AbstractShape> shapes = new ArrayList<>();
+    ArrayList<AbstractLight> lights = new ArrayList<>();
     Matrix.Builder builder = new Matrix.Builder();
     private float angle = 0;
 
@@ -33,7 +38,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        System.out.println("W/S to move Z\nA/D to move X\nR/F to move Y\nQ/E to rotate around Y axis\nZ to reset facing towards origin");
+        System.out.println("W/S to move Z\nA/D to move X\nR/F to move Y\nQ/E to rotate around Y axis\nC/X to rotate around X axis\nZ to reset facing towards origin");
 
         primaryStage.setTitle("AnimationWheel");
         Group root = new Group();
@@ -45,6 +50,15 @@ public class Main extends Application implements EventHandler<KeyEvent> {
         GraphicsContext context = canvas.getGraphicsContext2D();
         root.getChildren().add(canvas);
 
+        AmbientLight ambientLight = new AmbientLight(0.3f, 0xffffff);
+        lights.add(ambientLight);
+
+        Cube lightCube = new Cube();
+        float[] lightPos = new float[] {0,200,0,1};
+        lightCube.setTransform(new Matrix.Builder().scale(10).translate(lightPos).build());
+        PointLight pointLight = new PointLight(1, 0xffffff, lightPos, lightCube, 500);
+        lights.add(pointLight);
+
         Tetrahedron t = new Tetrahedron();
         shapes.add(t);
 
@@ -54,8 +68,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
         Axes a = new Axes();
         shapes.add(a);
 
-        camera.moveZ(100); // Do this to keep shapes centered on the origin
-        camera.moveY(40);
+        camera.setPos(new float[] {0, 0, 100, 1});
         camera.faceTowardsOrigin();
 
 
@@ -80,6 +93,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
                 .reset()
                 .scale(20)
                 .translate(0,0,0)
+                .rotateZ(angle)
                 .build();
         shapes.get(0).setTransform(tetrahedronMatrix);
 
@@ -92,59 +106,77 @@ public class Main extends Application implements EventHandler<KeyEvent> {
         shapes.get(1).setTransform(cubeMatrix);
 
         for (AbstractShape s : shapes) {
-            for (base.Triangle t : s.mesh) {
-                // This applies the movements we've made to the shapes
-                float[][] points=Mat.matrixPointMult(s.transform, t.points);
+            for (Triangle t : s.mesh) {
+                render(context, t, s.transform, false);
+            }
+        }
 
-
-                // Cull tris facing away (which solves depth-checking for simple shapes)
-                // This needs to be done before applying perspective
-                float[] edge1= Mat.subtract(points[0], points[1]);
-                float[] edge2= Mat.subtract(points[0], points[2]);
-                float[] norm = Mat.cross(edge1, edge2);
-
-                // With perspective instead of isometric, we use this instead of the raw facing
-                float[] toTri = Mat.subtract(camera.pos,points[0]);
-
-                if(Mat.dot(norm, toTri)<0) {
-                    points = camera.look(points);
-                    if (points != null) {
-                        double[][] coords = pointsToDisplayPoints(points);
-                        context.setFill(Color.rgb((t.color & 0xff0000) >> 16, (t.color & 0x00ff00) >> 8, t.color & 0x0000ff));
-                        context.fillPolygon(coords[0], coords[1], 3);
-                    }
+        for (AbstractLight l : lights) {
+            if (l.shape != null) {
+                for (Triangle t : l.shape.mesh) {
+                    render(context, t, l.shape.transform, true);
                 }
             }
         }
         last = time;
     }
 
+    private void render(GraphicsContext context, Triangle t, float[][] transform, boolean emissive) {
+        // This applies the movements we've made to the shapes
+        float[][] points=Mat.matrixPointMult(transform, t.points);
+
+        // Cull tris facing away (which solves depth-checking for simple shapes)
+        // This needs to be done before applying perspective
+        float[] edge1= Mat.subtract(points[0], points[1]);
+        float[] edge2= Mat.subtract(points[0], points[2]);
+        float[] norm = Mat.cross(edge1, edge2);
+
+        // With perspective instead of isometric, we use this instead of the raw facing
+        float[] toTri = Mat.subtract(camera.pos,points[0]);
+
+        if(Mat.dot(norm, toTri)<0) {
+            Camera.PointsAndColor pc = new Camera.PointsAndColor(points, t.color);
+            pc = camera.look(pc, lights, emissive);
+            if (pc.points != null) {
+                double[][] coords = pointsToDisplayPoints(pc.points);
+                context.setFill(Color.rgb((pc.color & 0xff0000) >> 16, (pc.color & 0x00ff00) >> 8, pc.color & 0x0000ff));
+                context.fillPolygon(coords[0], coords[1], 3);
+            }
+        }
+    }
+
     @Override
     public void handle(KeyEvent event) {
         switch (event.getCode()) {
             case W:
-                camera.moveZ(-5);
+                camera.moveForward(5);
                 break;
             case S:
-                camera.moveZ(5);
+                camera.moveForward(-5);
                 break;
             case D:
-                camera.moveX(5);
+                camera.moveRight(5);
                 break;
             case A:
-                camera.moveX(-5);
+                camera.moveRight(-5);
                 break;
             case E:
-                camera.rotateYBy(2);
+                camera.rotateYBy(5);
                 break;
             case Q:
-                camera.rotateYBy(-2);
+                camera.rotateYBy(-5);
                 break;
             case R:
-                camera.moveY(5);
+                camera.moveUp(5);
                 break;
             case F:
-                camera.moveY(-5);
+                camera.moveUp(-5);
+                break;
+            case X:
+                camera.rotateXBy(5);
+                break;
+            case C:
+                camera.rotateXBy(-5);
                 break;
             case Z:
                 camera.faceTowardsOrigin();

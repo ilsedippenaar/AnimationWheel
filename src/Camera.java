@@ -1,5 +1,8 @@
 import base.*;
 import base.Mat;
+import lights.AbstractLight;
+
+import java.util.ArrayList;
 
 /**
  * 1. Translate so that camera is at origin
@@ -47,7 +50,7 @@ public class Camera {
     }
 
     public void faceTowardsOrigin(){
-        faceTowards(new float[]{0,0,0,0});
+        faceTowards(new float[]{0, 0, 0, 0});
     }
 
     public void setZNear(float zNear) {
@@ -98,32 +101,34 @@ public class Camera {
         isWorldViewDirty = true;
     }
 
-    public void moveX(float dx) {
-        pos[0] += dx;
+    public void moveRight(float dist) {
+        float[] right = Mat.normalize(Mat.cross(facing, up));
+        pos = Mat.add(pos, Mat.mult(right, dist));
         isWorldViewDirty = true;
     }
 
-    public void moveY(float dy) {
-        pos[1] += dy;
+    public void moveUp(float dist) {
+        pos = Mat.add(pos, Mat.mult(up, dist));
         isWorldViewDirty = true;
     }
 
-    public void moveZ(float dz) {
-        pos[2] += dz;
+    public void moveForward(float dist) {
+        pos = Mat.add(pos, Mat.mult(facing, dist));
         isWorldViewDirty = true;
     }
 
-    public float[][] look(float[][] points) {
+    public PointsAndColor look(PointsAndColor pointsAndColor, ArrayList<AbstractLight> lights, boolean emissive) {
         if (isWorldViewDirty) {
             worldView = makeWorldViewMatrix();
             isWorldViewDirty = false;
         }
-        float[][] worldViewPoints = Mat.matrixPointMult(worldView, points); // puts into world view space
-        worldViewPoints = Mat.matrixPointMult(projectMatrix, worldViewPoints); // puts in clip space
-        worldViewPoints = perspectiveDivide(worldViewPoints); // puts into NDC
+        float[][] points = Mat.matrixPointMult(worldView, pointsAndColor.points); // puts into world view space
+        pointsAndColor.color = light(pointsAndColor, lights, emissive);
+        points = Mat.matrixPointMult(projectMatrix, points); // puts in clip space
+        points = perspectiveDivide(points); // puts into NDC
         // TODO: better clipping algorithm
-        worldViewPoints = clip(worldViewPoints);
-        return worldViewPoints;
+        pointsAndColor.points = clip(points);
+        return pointsAndColor;
     }
 
     /**
@@ -141,6 +146,18 @@ public class Camera {
                 {n[0], n[1], n[2], -Mat.dot(n, pos)},
                 {0,0,0,1}
         };
+    }
+
+    private int light(PointsAndColor pointsAndColor, ArrayList<AbstractLight> lights, boolean emissive) {
+        int color = pointsAndColor.color;
+        float[][] points = pointsAndColor.points;
+        float[] norm = Mat.normalize(Mat.cross(Mat.subtract(points[1], points[0]), Mat.subtract(points[2], points[0])));
+        norm = emissive ? Mat.mult(norm, -1) : norm;
+        int[] colors = new int[lights.size()];
+        for (int i = 0; i < lights.size(); i++) {
+            colors[i] = lights.get(i).light(points, norm, color);
+        }
+        return Mat.addColorsWithThreshold(colors);
     }
 
     /**
@@ -177,5 +194,16 @@ public class Camera {
             worldViewPoints[i] = Mat.mult(worldViewPoints[i], 1/worldViewPoints[i][3]);
         }
         return worldViewPoints;
+    }
+
+    // Because Java is silly, we need a holder to return a float[][] and an int for the triangle's color
+    public static class PointsAndColor {
+        public float[][] points;
+        public int color;
+
+        PointsAndColor(float[][] points, int color) {
+            this.points = points;
+            this.color = color;
+        }
     }
 }
