@@ -15,12 +15,10 @@ import javafx.stage.Stage;
 import lights.AbstractLight;
 import lights.AmbientLight;
 import lights.PointLight;
-import shapes.AbstractShape;
-import shapes.Axes;
-import shapes.Cube;
-import shapes.Tetrahedron;
+import shapes.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -36,11 +34,14 @@ public class Main extends Application implements EventHandler<KeyEvent> {
     private float angle = 0;
 
     public static void main(String[] args) throws InterruptedException {
+
         launch(args);
     }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+
+
         System.out.println("W/S to move Z\nA/D to move X\nR/F to move Y\nQ/E to rotate around Y axis\nC/X to rotate around X axis\nZ to reset facing towards origin");
 
         primaryStage.setTitle("AnimationWheel");
@@ -62,8 +63,11 @@ public class Main extends Application implements EventHandler<KeyEvent> {
         PointLight pointLight = new PointLight(1, 0xffffff, lightPos, lightCube, 500);
         lights.add(pointLight);
 
-        Tetrahedron t = new Tetrahedron();
-        shapes.add(t);
+        //Tetrahedron t = new Tetrahedron();
+        //shapes.add(t);
+
+        HollowCube h = new HollowCube();
+        shapes.add(h);
 
         Cube c=new Cube();
         shapes.add(c);
@@ -71,7 +75,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
         Axes a = new Axes();
         shapes.add(a);
 
-        camera.setPos(new float[] {0, 0, 100, 1});
+        camera.setPos(new float[] {0, 0, 200, 1});
         camera.faceTowardsOrigin();
 
 
@@ -91,31 +95,32 @@ public class Main extends Application implements EventHandler<KeyEvent> {
         // clear canvas to draw again
         context.clearRect(0, 0, width, height);
 
-        //angle = (angle + 1f*(time-last)/(16.66666f*1000000)) % 360;
-        float[][] tetrahedronMatrix = builder
+        angle = (angle + 1f*(time-last)/(16.66666f*1000000)) % 360;
+        float[][] firsShapeMatrix = builder
                 .reset()
                 .scale(20)
                 .translate(0,0,0)
-                .rotateZ(angle)
+                .rotateY(angle) // TODO  Fix: this causes the shape to turn inside-out
                 .build();
-        shapes.get(0).setTransform(tetrahedronMatrix);
+        shapes.get(0).setTransform(firsShapeMatrix);
 
-        float[][] cubeMatrix = builder
+        float[][] secondShapeMatrix = builder
                 .reset()
                 .scale(20)
                 .translate(0,0,-400)
-                .rotateY(-angle)
+                .rotateZ(-angle)
                 .build();
-        shapes.get(1).setTransform(cubeMatrix);
+        shapes.get(1).setTransform(secondShapeMatrix);
 
         //*
         ArrayList<SortableTriangle> renderedTris=new ArrayList<>();
         //*/
+
         for (AbstractShape s : shapes) {
             for (Triangle t : s.mesh) {
                 /*
                 render(context, t, s.transform, false);
-                //*/
+                /*/
                 SortableTriangle temp = (renderReturn(t, s.transform, false));
                 if(temp!=null)
                     renderedTris.add(temp);
@@ -128,7 +133,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
                 for (Triangle t : l.shape.mesh) {
                     /*
                     render(context, t, l.shape.transform, true);
-                    //*/
+                    /*/
                     SortableTriangle temp = (renderReturn(t, l.shape.transform, false));
                     if(temp!=null)
                         renderedTris.add(temp);
@@ -187,11 +192,16 @@ public class Main extends Application implements EventHandler<KeyEvent> {
         // With perspective instead of isometric, we use this instead of the raw facing
         float[] toTri = Mat.subtract(camera.pos,points[0]);
 
+        float[] dist=Mat.add(Mat.add(points[0],points[1]),points[2]);
+        dist=Mat.subtract(dist, camera.pos);
+        dist=Mat.subtract(dist, camera.pos);
+        dist=Mat.subtract(dist, camera.pos);
+
         if(Mat.dot(norm, toTri)<0) {
             Camera.PointsAndColor pc = new Camera.PointsAndColor(points, t.color);
             pc = camera.look(pc, lights, emissive);
             if (pc.points != null) {
-                double depth = Mat.magnitude(toTri);
+                double depth = Mat.magnitude(dist);
                 double[][] coords = pointsToDisplayPoints(pc.points);
                 return new SortableTriangle(coords, pc.color, depth);
             }

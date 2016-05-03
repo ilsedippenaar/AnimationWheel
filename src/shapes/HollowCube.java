@@ -24,17 +24,17 @@ public class HollowCube extends AbstractShape {
                 downLeftBack = {-1,-1,-1,1};
 
         //Right
-        addSurface(new float[][]{upRightFront, upRightBack, downRightBack,{}}, Color.RED.getRGB());
+        addSurface(new float[][]{upRightFront, downRightFront, downRightBack,{}}, Color.RED.getRGB());
         //Up
-        addSurface(new float[][]{upLeftFront, upLeftBack, upRightBack,{}}, Color.GREEN.getRGB());
+        addSurface(new float[][]{upLeftFront, upRightFront, upRightBack,{}}, Color.GREEN.getRGB());
         //Front
-        addSurface(new float[][]{upLeftFront, upRightFront, downRightFront,{}}, Color.BLUE.getRGB());
+        addSurface(new float[][]{upLeftFront, downLeftFront, downRightFront,{}}, Color.BLUE.getRGB());
         //Left
-        addSurface(new float[][]{upLeftFront, downLeftFront, downLeftBack,{}}, Color.PINK.getRGB());
+        addSurface(new float[][]{upLeftFront, upLeftBack, downLeftBack,{}}, Color.PINK.getRGB());
         //Down
-        addSurface(new float[][]{downLeftFront, downRightFront, downRightBack,{}}, Color.ORANGE.getRGB());
+        addSurface(new float[][]{downLeftFront, downLeftBack, downRightBack,{}}, Color.ORANGE.getRGB());
         //Back
-        addSurface(new float[][]{upLeftBack, downLeftBack, downRightBack,{}}, Color.CYAN.getRGB());
+        addSurface(new float[][]{upLeftBack, upRightBack, downRightBack,{}}, Color.CYAN.getRGB());
     }
     
     // Points go in clockwise order

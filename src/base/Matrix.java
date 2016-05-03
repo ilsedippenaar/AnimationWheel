@@ -135,6 +135,8 @@ public class Matrix {
         }
 
         public Builder rotateY(float angle) {
+            //TODO fix this causing shapes to turn inside-out
+            // Not sure why, but it happens
             rotationY = makeRotationMatrix(angle, yAxis);
             return this;
         }
