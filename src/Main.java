@@ -1,5 +1,6 @@
 import base.Mat;
 import base.Matrix;
+import base.SortableTriangle;
 import base.Triangle;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
@@ -20,6 +21,8 @@ import shapes.Cube;
 import shapes.Tetrahedron;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 public class Main extends Application implements EventHandler<KeyEvent> {
     private int width = 800;
@@ -88,7 +91,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
         // clear canvas to draw again
         context.clearRect(0, 0, width, height);
 
-        angle = (angle + 1f*(time-last)/(16.66666f*1000000)) % 360;
+        //angle = (angle + 1f*(time-last)/(16.66666f*1000000)) % 360;
         float[][] tetrahedronMatrix = builder
                 .reset()
                 .scale(20)
@@ -105,19 +108,42 @@ public class Main extends Application implements EventHandler<KeyEvent> {
                 .build();
         shapes.get(1).setTransform(cubeMatrix);
 
+        //*
+        ArrayList<SortableTriangle> renderedTris=new ArrayList<>();
+        //*/
         for (AbstractShape s : shapes) {
             for (Triangle t : s.mesh) {
+                /*
                 render(context, t, s.transform, false);
+                //*/
+                SortableTriangle temp = (renderReturn(t, s.transform, false));
+                if(temp!=null)
+                    renderedTris.add(temp);
+                //*/
             }
         }
 
         for (AbstractLight l : lights) {
             if (l.shape != null) {
                 for (Triangle t : l.shape.mesh) {
+                    /*
                     render(context, t, l.shape.transform, true);
+                    //*/
+                    SortableTriangle temp = (renderReturn(t, l.shape.transform, false));
+                    if(temp!=null)
+                        renderedTris.add(temp);
+                    //*/
                 }
             }
         }
+
+        //*
+        Collections.sort(renderedTris, Collections.reverseOrder()); // Reverse order is what we want
+        for(SortableTriangle t:renderedTris){
+            t.render(context);
+        }
+        //*/
+
         last = time;
     }
 
@@ -144,6 +170,36 @@ public class Main extends Application implements EventHandler<KeyEvent> {
             }
         }
     }
+
+    /**
+     * Same as render() except instead of drawing the tri, it returns a sortable triangle to be sorted & rendered later
+     */
+    private SortableTriangle renderReturn(Triangle t, float[][] transform, boolean emissive) {
+        // This applies the movements we've made to the shapes
+        float[][] points=Mat.matrixPointMult(transform, t.points);
+
+        // Cull tris facing away (which solves depth-checking for simple shapes)
+        // This needs to be done before applying perspective
+        float[] edge1= Mat.subtract(points[0], points[1]);
+        float[] edge2= Mat.subtract(points[0], points[2]);
+        float[] norm = Mat.cross(edge1, edge2);
+
+        // With perspective instead of isometric, we use this instead of the raw facing
+        float[] toTri = Mat.subtract(camera.pos,points[0]);
+
+        if(Mat.dot(norm, toTri)<0) {
+            Camera.PointsAndColor pc = new Camera.PointsAndColor(points, t.color);
+            pc = camera.look(pc, lights, emissive);
+            if (pc.points != null) {
+                double depth = Mat.magnitude(toTri);
+                double[][] coords = pointsToDisplayPoints(pc.points);
+                return new SortableTriangle(coords, pc.color, depth);
+            }
+        }
+        return null;
+    }
+
+
 
     @Override
     public void handle(KeyEvent event) {
